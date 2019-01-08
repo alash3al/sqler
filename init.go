@@ -24,7 +24,7 @@ func init() {
 		os.Exit(0)
 	}
 
-	manager, err := NewManager(*flagConfigFile)
+	manager, err := NewManager(*flagAPIFile)
 	if err != nil {
 		fmt.Println(color.RedString("(%s)", err.Error()))
 		os.Exit(0)

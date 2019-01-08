@@ -18,7 +18,7 @@ func NewContext() *Context {
 }
 
 // SQLEscape - a sql escape function
-func (c *Context) SQLEscape(s interface{}) interface{} {
+func (c Context) SQLEscape(s interface{}) interface{} {
 	if s == nil {
 		return ""
 	}

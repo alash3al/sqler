@@ -4,8 +4,6 @@
 package main
 
 import (
-	"strings"
-
 	"github.com/labstack/echo"
 )
 
@@ -19,49 +17,15 @@ func routeIndex(c echo.Context) error {
 
 // routeExecMacro - execute the requested macro
 func routeExecMacro(c echo.Context) error {
-	if strings.HasPrefix(c.Param("macro"), "_") {
-		return c.JSON(403, map[string]interface{}{
-			"success": false,
-			"error":   "access not allowed",
-		})
-	}
-
-	macro := macrosManager.Get(c.Param("macro"))
-	if macro == nil {
-		return c.JSON(404, map[string]interface{}{
-			"success": false,
-			"error":   "resource not found #1",
-		})
-	}
-
-	if len(macro.Methods) < 1 {
-		macro.Methods = []string{c.Request().Method}
-	}
-
-	methodIsAllowed := false
-	for _, method := range macro.Methods {
-		method = strings.ToUpper(method)
-		if c.Request().Method == method {
-			methodIsAllowed = true
-			break
-		}
-	}
-
-	if !methodIsAllowed {
-		return c.JSON(404, map[string]interface{}{
-			"success": false,
-			"error":   "resource not found #2",
-		})
-	}
-
+	macro := c.Get("macro").(*Macro)
 	input := make(map[string]interface{})
 	body := make(map[string]interface{})
+
+	c.Bind(&body)
 
 	for k := range c.QueryParams() {
 		input[k] = c.QueryParam(k)
 	}
-
-	c.Bind(&body)
 
 	for k, v := range body {
 		input[k] = v

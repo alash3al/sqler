@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"path/filepath"
@@ -18,9 +19,10 @@ import (
 
 // Macro - a macro configuration
 type Macro struct {
-	Methods []string            `json:"method"`
-	Rules   map[string][]string `json:"rules"`
-	Exec    string              `json:"exec"`
+	Authorizers []string            `json:"authorizers"`
+	Methods     []string            `json:"method"`
+	Rules       map[string][]string `json:"rules"`
+	Exec        string              `json:"exec"`
 }
 
 // Manager - a macros manager
@@ -58,6 +60,8 @@ func NewManager(configpath string) (*Manager, error) {
 			return nil, err
 		}
 	}
+
+	fmt.Println(manager.configs["adduser"].Authorizers)
 
 	return manager, nil
 }

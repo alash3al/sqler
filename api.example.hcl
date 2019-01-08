@@ -20,6 +20,15 @@ adduser {
     // default: ["ANY"]
     methods = ["POST"]
 
+    // authorizers,
+    // sqler will attempt to send the incoming authorization header
+    // to the provided endpoint(s) as `Authorization`,
+    // each endpoint MUST return `200 OK` so sqler can continue, other wise,
+    // sqler will break the request and return back the client with the error occured.
+    // each authorizer has a method and a url, if you ignored the method
+    // it will be automatically set to `GET`.
+    authorizers = ["GET http://web.hook/api/authorize", "GET http://web.hook/api/allowed?roles=admin,root,super_admin"]
+
     // the validation rules
     // you can specifiy seprated rules for each request method!
     rules {
@@ -31,7 +40,7 @@ adduser {
     exec = <<SQL
         {{ template "_boot" }}
 
-        INSERT INTO users(name, email) VALUES('{{ .Input.user_name | .SQL }}', '{{ .Input.user_email | .SQL }}');
+        INSERT INTO users(name, email) VALUES('{{ .Input.user_name | .SQLEscape }}', '{{ .Input.user_email | .SQLEscape }}');
         SELECT * FROM users WHERE id = LAST_INSERT_ID();
     SQL
 }

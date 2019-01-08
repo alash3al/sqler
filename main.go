@@ -22,7 +22,7 @@ func main() {
 	e.Use(middleware.Recover())
 
 	e.GET("/", routeIndex)
-	e.Any("/:macro", routeExecMacro)
+	e.Any("/:macro", routeExecMacro, middlewareAuthorize)
 
 	fmt.Println(color.MagentaString(sqlerBrand))
 	fmt.Printf("⇨ used dsn is %s \n", color.GreenString(*flagDBDSN))
