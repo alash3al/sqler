@@ -14,3 +14,19 @@ var (
 var (
 	macrosManager *Manager
 )
+
+const (
+	sqlerVersion = "v1.0"
+	sqlerBrand   = `
+	
+			 ____   ___  _              
+			/ ___| / _ \| |    ___ _ __ 
+			\___ \| | | | |   / _ \ '__|
+			 ___) | |_| | |__|  __/ |   
+			|____/ \__\_\_____\___|_|   
+											
+	turn your SQL queries into safe valid RESTful apis
+
+	
+	`
+)

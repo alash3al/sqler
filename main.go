@@ -1,7 +1,9 @@
 package main
 
 import (
-	"log"
+	"fmt"
+
+	"github.com/alash3al/go-color"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -19,5 +21,8 @@ func main() {
 	e.GET("/", routeIndex)
 	e.Any("/:macro", routeExecMacro)
 
-	log.Fatal(e.Start(*flagListenAddr))
+	fmt.Println(color.MagentaString(sqlerBrand))
+	fmt.Printf("⇨ used dsn is %s \n", color.GreenString(*flagDBDSN))
+
+	color.Red(e.Start(*flagListenAddr).Error())
 }
