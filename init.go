@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/bwmarrin/snowflake"
+
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
@@ -31,4 +33,10 @@ func init() {
 	}
 
 	macrosManager = manager
+
+	snow, err = snowflake.NewNode(1)
+	if err != nil {
+		fmt.Println(color.RedString("(%s)", err.Error()))
+		os.Exit(0)
+	}
 }

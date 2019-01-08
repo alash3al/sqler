@@ -27,7 +27,9 @@ _boot {
         CREATE TABLE IF NOT EXISTS `users` (
             `ID` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             `name` VARCHAR(30) DEFAULT "@anonymous",
-            `email` VARCHAR(30) DEFAULT "@anonymous" 
+            `email` VARCHAR(30) DEFAULT "@anonymous",
+            `password` VARCHAR(200) DEFAULT "",
+            `time` INT UNSIGNED
         );
     SQL
 }
@@ -47,20 +49,27 @@ adduser {
     // sqler will break the request and return back the client with the error occured.
     // each authorizer has a method and a url, if you ignored the method
     // it will be automatically set to `GET`.
-    authorizers = ["GET http://web.hook/api/authorize", "GET http://web.hook/api/allowed?roles=admin,root,super_admin"]
+    // authorizers = ["GET http://web.hook/api/authorize", "GET http://web.hook/api/allowed?roles=admin,root,super_admin"]
 
     // the validation rules
     // you can specifiy seprated rules for each request method!
     rules {
         user_name = ["required"]
-        user_email =  ["required"]
+        user_email =  ["required", "email"]
+        user_password = ["required", "stringlength: 5,50"]
     }
 
     // the query to be executed
     exec = <<SQL
         {{ template "_boot" }}
 
-        INSERT INTO users(name, email) VALUES('{{ .Input.user_name | .SQLEscape }}', '{{ .Input.user_email | .SQLEscape }}');
+        INSERT INTO users(name, email, password, time) VALUES(
+            '{{ .Input.user_name | .SQLEscape }}', 
+            '{{ .Input.user_email | .SQLEscape }}',
+            '{{ .Input.user_password | .Hash "bcrypt" }}',
+            {{ .UnixTime }}
+        );
+
         SELECT * FROM users WHERE id = LAST_INSERT_ID();
     SQL
 }
@@ -90,6 +99,14 @@ Supported Validation Rules
 ==========================
 - Simple Validations methods with no args: [here](https://godoc.org/github.com/asaskevich/govalidator#TagMap)
 - Advanced Validations methods with args: [here](https://godoc.org/github.com/asaskevich/govalidator#ParamTagMap) 
+
+Supported Uitls
+===============
+- `.SQLEscape` - a sql escape function, `{{ "some data" | .SQLEscape }}`
+- `.Hash <method>` - hash the specified input using the specified method [md5, sha1, sha256, sha512, bcrypt], `{{ "data" | .Hash "md5" }}`
+- `.UnixTime` - returns the unix time in seconds, `{{ .UnixTime }}`
+- `.UnixNanoTime` - returns the unix time in nanoseconds, `{{ .UnixNanoTime }}`
+- `.Uniqid` - returns a unique id, `{{ .Uniqid }}`
 
 License
 ========

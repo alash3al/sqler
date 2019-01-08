@@ -3,6 +3,18 @@
 // license that can be found in the LICENSE file.
 package main
 
+import (
+	"crypto/md5"
+	"crypto/sha1"
+	"crypto/sha256"
+	"crypto/sha512"
+	"encoding/hex"
+	"strings"
+	"time"
+
+	"golang.org/x/crypto/bcrypt"
+)
+
 // Context ...
 type Context struct {
 	Input map[string]interface{}
@@ -18,16 +30,7 @@ func NewContext() *Context {
 }
 
 // SQLEscape - a sql escape function
-func (c Context) SQLEscape(s interface{}) interface{} {
-	if s == nil {
-		return ""
-	}
-
-	sql, ok := s.(string)
-	if !ok {
-		return s
-	}
-
+func (c Context) SQLEscape(sql string) string {
 	dest := []byte{}
 	var escape byte
 	for i := 0; i < len(sql); i++ {
@@ -65,5 +68,47 @@ func (c Context) SQLEscape(s interface{}) interface{} {
 		}
 	}
 
-	return interface{}(string(dest))
+	return string(dest)
+}
+
+// Hash - hash the specified input using the specified method [md5, sha1, sha256, sha512]
+func (c Context) Hash(method string, input string) string {
+	result := ""
+
+	switch strings.ToLower(method) {
+	case "md5":
+		hash := md5.Sum([]byte(input))
+		result = hex.EncodeToString(hash[:])
+	case "sha1":
+		hash := sha1.Sum([]byte(input))
+		result = hex.EncodeToString(hash[:])
+	case "sha256":
+		hash := sha256.Sum256([]byte(input))
+		result = hex.EncodeToString(hash[:])
+	case "sha512":
+		hash := sha512.Sum512([]byte(input))
+		result = hex.EncodeToString(hash[:])
+	case "bcrypt":
+		hash, err := bcrypt.GenerateFromPassword([]byte(input), bcrypt.DefaultCost)
+		if err == nil {
+			result = string(hash)
+		}
+	}
+
+	return result
+}
+
+// UnixTime - returns the unix time in seconds
+func (c Context) UnixTime() int64 {
+	return time.Now().Unix()
+}
+
+// UnixNanoTime - returns the unix time in nano seconds
+func (c Context) UnixNanoTime() int64 {
+	return time.Now().UnixNano()
+}
+
+// Uniqid - returns a unique string
+func (c Context) Uniqid() string {
+	return snow.Generate().String()
 }

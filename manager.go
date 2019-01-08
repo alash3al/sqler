@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"path/filepath"
@@ -61,8 +60,6 @@ func NewManager(configpath string) (*Manager, error) {
 		}
 	}
 
-	fmt.Println(manager.configs["adduser"].Authorizers)
-
 	return manager, nil
 }
 
@@ -82,6 +79,11 @@ func (m *Manager) Call(macro string, input map[string]interface{}) (interface{},
 // Get - fetches the required macro
 func (m *Manager) Get(macro string) *Macro {
 	return m.configs[macro]
+}
+
+// Size - return the size of the currently loaded configs
+func (m *Manager) Size() int {
+	return len(m.configs)
 }
 
 // compileMacro - compile the specified macro and pass the specified ctx

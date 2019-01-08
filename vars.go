@@ -5,6 +5,8 @@ package main
 
 import (
 	"flag"
+
+	"github.com/bwmarrin/snowflake"
 )
 
 var (
@@ -16,6 +18,7 @@ var (
 
 var (
 	macrosManager *Manager
+	snow          *snowflake.Node
 )
 
 const (
