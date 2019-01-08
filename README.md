@@ -52,8 +52,7 @@ adduser {
     // to the provided endpoint(s) as `Authorization`,
     // each endpoint MUST return `200 OK` so sqler can continue, other wise,
     // sqler will break the request and return back the client with the error occured.
-    // each authorizer has a method and a url, if you ignored the method
-    // it will be automatically set to `GET`.
+    // each authorizer has a method and a url.
     // authorizers = ["GET http://web.hook/api/authorize", "GET http://web.hook/api/allowed?roles=admin,root,super_admin"]
 
     // the validation rules
