@@ -9,7 +9,10 @@ Features
 - Built-in Validators
 - Built-in `sql escaper` function
 - Uses ([`HCL`](https://github.com/hashicorp/hcl)) configuration language
-- You can load multiple configuration files not just one, based on `unix glob` style pattern.
+- You can load multiple configuration files not just one, based on `unix glob` style pattern
+- Each `SQL` query could be named as `Macro`
+- You can use [`Go tex/template`](https://golang.org/pkg/text/template/) within each macro
+- Each macro have its own `Context` (`query params` + `body params` + `helper functions`)
 
 Configuration Overview
 ======================
@@ -49,7 +52,7 @@ adduser {
         /* include the "_boot" macro */
         {{ template "_boot" }}
 
-        INSERT INTO users(name, email) VALUES('{{ .Input.user_name | .SQL }}', '{{ .Input.user_email | .SQL }}');
+        INSERT INTO users(name, email) VALUES('{{ .Input.user_name | .SQLEscape }}', '{{ .Input.user_email | .SQLEscape }}');
         SELECT * FROM users WHERE id = LAST_INSERT_ID();
     SQL
 }
@@ -66,7 +69,7 @@ Supported SQL Engines
 - `mysql`
 - `postgresql`
 - `cockroachdb`
-- `mssql`
+- `sqlserver`
 
 Supported Validation Rules
 ==========================
