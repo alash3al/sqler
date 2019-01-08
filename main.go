@@ -14,7 +14,6 @@ func main() {
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.CORS())
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 9}))
-	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
 	e.GET("/", routeIndex)

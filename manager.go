@@ -41,10 +41,10 @@ func NewManager(configpath string) (*Manager, error) {
 		var config map[string]*Macro
 		if err := hcl.Unmarshal(data, &config); err != nil {
 			return nil, err
-		} else {
-			for k, v := range config {
-				manager.configs[k] = v
-			}
+		}
+
+		for k, v := range config {
+			manager.configs[k] = v
 		}
 	}
 
@@ -107,6 +107,7 @@ func (m *Manager) execSQLQuery(sql string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer conn.Close()
 
 	rows, err := conn.Queryx(string(sql))
 	if err != nil {

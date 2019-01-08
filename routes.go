@@ -32,7 +32,7 @@ func routeExecMacro(c echo.Context) error {
 	}
 
 	if len(macro.Methods) < 1 {
-		macro.Methods = []string{"ANY"}
+		macro.Methods = []string{c.Request().Method}
 	}
 
 	methodIsAllowed := false
