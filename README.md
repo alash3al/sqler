@@ -37,6 +37,7 @@ adduser {
 
     // the query to be executed
     exec = <<EOF
+        /* include the "_boot" macro */
         {{ template "_boot" }}
 
         INSERT INTO users(name, email) VALUES('{{ .Input.user_name | .SQL }}', '{{ .Input.user_email | .SQL }}');
