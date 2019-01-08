@@ -77,3 +77,10 @@ tables {
 databases {
     exec = "SHOW DATABASES"
 }
+
+users {
+    exec = <<SQL
+        select name, count(*) from users  
+        group by name;
+    SQL
+}

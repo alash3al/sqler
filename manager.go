@@ -162,7 +162,14 @@ func (m *Manager) scanSQLRow(rows *sqlx.Rows) (map[string]interface{}, error) {
 		if nil == v {
 			continue
 		}
-		v = []byte(v.([]uint8))
+
+		switch v.(type) {
+		case []uint8:
+			v = []byte(v.([]uint8))
+		default:
+			v, _ = json.Marshal(v)
+		}
+
 		var d interface{}
 		if nil == json.Unmarshal(v.([]byte), &d) {
 			row[k] = d
