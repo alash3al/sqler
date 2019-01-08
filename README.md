@@ -10,13 +10,13 @@ Configuration Overview
 // because it starts with "_".
 _boot {
     // the query we want to execute
-    exec = <<EOF
+    exec = <<SQL
         CREATE TABLE IF NOT EXISTS `users` (
             `ID` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             `name` VARCHAR(30) DEFAULT "@anonymous",
             `email` VARCHAR(30) DEFAULT "@anonymous" 
         );
-    EOF
+    SQL
 }
 
 // adduser macro/endpoint, just hit `/adduser` with
@@ -36,13 +36,13 @@ adduser {
     }
 
     // the query to be executed
-    exec = <<EOF
+    exec = <<SQL
         /* include the "_boot" macro */
         {{ template "_boot" }}
 
         INSERT INTO users(name, email) VALUES('{{ .Input.user_name | .SQL }}', '{{ .Input.user_email | .SQL }}');
         SELECT * FROM users WHERE id = LAST_INSERT_ID();
-    EOF
+    SQL
 }
 
 // an endpoint for `GET /databases` method to display all databases
