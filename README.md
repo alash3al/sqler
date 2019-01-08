@@ -114,7 +114,7 @@ Supported Uitls
 
 License
 ========
-> Copyright 2018 The SQLer Authors. All rights reserved.
+> Copyright 2019 The SQLer Authors. All rights reserved.
 > Use of this source code is governed by a Apache 2.0
 > license that can be found in the [LICENSE](/License) file.
 
