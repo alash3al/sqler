@@ -15,6 +15,11 @@ Features
 - Each macro have its own `Context` (`query params` + `body params`) as `.Input` which is `map[string]interface{}`, and `.Utils` which is a list of helper functions, currently it contains only `SQLEscape`.
 - You can define `authorizers`, an `authorizer` is just a simple webhook that enables `sqler` to verify whether the request should be done or not.
 
+Download
+========
+- FromSource: `go get github.com/alash3al/sqler`
+- BinaryRelease: go to [releases page](https://github.com/alash3al/sqler/releases)
+
 Configuration Overview
 ======================
 ```hcl
