@@ -43,10 +43,22 @@ adduser {
     exec = <<SQL
         {{ template "_boot" }}
 
+        /* let's bind a vars to be used within our internal prepared statment */
+        {{ .BindVar "name" .Input.user_name }}
+        {{ .BindVar "email" .Input.user_email }}
+        {{ .BindVar "emailx" .Input.user_email }}
+
         INSERT INTO users(name, email, password, time) VALUES(
-            '{{ .Input.user_name | .SQLEscape }}', 
-            '{{ .Input.user_email | .SQLEscape }}',
+            /* we added it above */
+            :name,
+
+            /* we added it above */
+            :email,
+
+            /* it will be secured anyway because it is encoded */
             '{{ .Input.user_password | .Hash "bcrypt" }}',
+
+            /* generate a unix timestamp "seconds" */
             {{ .UnixTime }}
         );
 

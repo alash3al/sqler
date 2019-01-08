@@ -7,7 +7,7 @@ Features
 - Standalone with no dependencies.
 - Works with most of SQL databases out there including (`SQL Server`, `MYSQL`, `SQLITE`, `PostgreSQL`, `Cockroachdb`)
 - Built-in Validators
-- Built-in `sql escaper` function
+- Autmatically uses prepared statements
 - Uses ([`HCL`](https://github.com/hashicorp/hcl)) configuration language
 - You can load multiple configuration files not just one, based on `unix glob` style pattern
 - Each `SQL` query could be named as `Macro`
@@ -65,12 +65,24 @@ adduser {
 
     // the query to be executed
     exec = <<SQL
-        {{ template "_boot" }}
+       {{ template "_boot" }}
+
+        /* let's bind a vars to be used within our internal prepared statment */
+        {{ .BindVar "name" .Input.user_name }}
+        {{ .BindVar "email" .Input.user_email }}
+        {{ .BindVar "emailx" .Input.user_email }}
 
         INSERT INTO users(name, email, password, time) VALUES(
-            '{{ .Input.user_name | .SQLEscape }}', 
-            '{{ .Input.user_email | .SQLEscape }}',
+            /* we added it above */
+            :name,
+
+            /* we added it above */
+            :email,
+
+            /* it will be secured anyway because it is encoded */
             '{{ .Input.user_password | .Hash "bcrypt" }}',
+
+            /* generate a unix timestamp "seconds" */
             {{ .UnixTime }}
         );
 
@@ -106,7 +118,6 @@ Supported Validation Rules
 
 Supported Uitls
 ===============
-- `.SQLEscape` - a sql escape function, `{{ "some data" | .SQLEscape }}`
 - `.Hash <method>` - hash the specified input using the specified method [md5, sha1, sha256, sha512, bcrypt], `{{ "data" | .Hash "md5" }}`
 - `.UnixTime` - returns the unix time in seconds, `{{ .UnixTime }}`
 - `.UnixNanoTime` - returns the unix time in nanoseconds, `{{ .UnixNanoTime }}`

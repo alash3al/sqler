@@ -17,7 +17,8 @@ import (
 
 // Context ...
 type Context struct {
-	Input map[string]interface{}
+	SQLArgs map[string]interface{}
+	Input   map[string]interface{}
 }
 
 // NewContext - initialize a context
@@ -27,48 +28,6 @@ func NewContext() *Context {
 	c.Input = make(map[string]interface{})
 
 	return c
-}
-
-// SQLEscape - a sql escape function
-func (c Context) SQLEscape(sql string) string {
-	dest := []byte{}
-	var escape byte
-	for i := 0; i < len(sql); i++ {
-		c := sql[i]
-
-		escape = 0
-
-		switch c {
-		case 0: /* Must be escaped for 'mysql' */
-			escape = '0'
-			break
-		case '\n': /* Must be escaped for logs */
-			escape = 'n'
-			break
-		case '\r':
-			escape = 'r'
-			break
-		case '\\':
-			escape = '\\'
-			break
-		case '\'':
-			escape = '\''
-			break
-		case '"': /* Better safe than sorry */
-			escape = '"'
-			break
-		case '\032': /* This gives problems on Win32 */
-			escape = 'Z'
-		}
-
-		if escape != 0 {
-			dest = append(dest, '\\', escape)
-		} else {
-			dest = append(dest, c)
-		}
-	}
-
-	return string(dest)
 }
 
 // Hash - hash the specified input using the specified method [md5, sha1, sha256, sha512]
@@ -111,4 +70,9 @@ func (c Context) UnixNanoTime() int64 {
 // Uniqid - returns a unique string
 func (c Context) Uniqid() string {
 	return snow.Generate().String()
+}
+
+func (c *Context) BindVar(name string, value interface{}) string {
+	c.SQLArgs[name] = value
+	return ""
 }

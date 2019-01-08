@@ -7,9 +7,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/hashicorp/hcl"
@@ -66,6 +68,7 @@ func NewManager(configpath string) (*Manager, error) {
 // Call - call the specified macro
 func (m *Manager) Call(macro string, input map[string]interface{}) (interface{}, error) {
 	ctx := NewContext()
+	ctx.SQLArgs = make(map[string]interface{})
 	ctx.Input = input
 
 	src, err := m.compileMacro(macro, ctx)
@@ -73,7 +76,7 @@ func (m *Manager) Call(macro string, input map[string]interface{}) (interface{},
 		return nil, err
 	}
 
-	return m.execSQLQuery(src)
+	return m.execSQLQuery(strings.Split(src, ";"), ctx.SQLArgs)
 }
 
 // Get - fetches the required macro
@@ -107,18 +110,29 @@ func (m *Manager) compileMacro(macro string, ctx *Context) (string, error) {
 		return "", errors.New("resource not found #2")
 	}
 
-	return string(src), nil
+	return strings.Trim(strings.TrimSpace(string(src)), ";"), nil
 }
 
 // execSQLQuery - execute the specified sql query
-func (m *Manager) execSQLQuery(sql string) (interface{}, error) {
+func (m *Manager) execSQLQuery(sqls []string, args map[string]interface{}) (interface{}, error) {
 	conn, err := sqlx.Open(*flagDBDriver, *flagDBDSN)
 	if err != nil {
 		return nil, err
 	}
 	defer conn.Close()
 
-	rows, err := conn.Queryx(string(sql))
+	for _, sql := range sqls[0 : len(sqls)-1] {
+		sql = strings.TrimSpace(sql)
+		if "" == sql {
+			continue
+		}
+		if _, err := conn.NamedExec(sql, args); err != nil {
+			fmt.Println("....")
+			return nil, err
+		}
+	}
+
+	rows, err := conn.NamedQuery(sqls[len(sqls)-1], args)
 	if err != nil {
 		return nil, err
 	}
