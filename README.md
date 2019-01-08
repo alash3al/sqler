@@ -1,6 +1,6 @@
 SQLer
 =====
-> `SQL-er` is a tiny http server that applies the old `CGI` concept but for `SQL` queries, it enables you to an endpoint and assign a SQL query to be executed when anyone hits it, also it enables you to define validation rules so you can validate the request body/query params. `sqler` uses `nginx` style configuration language ([`HCL`](https://github.com/hashicorp/hcl)).
+> `SQL-er` is a tiny http server that applies the old `CGI` concept but for `SQL` queries, it enables you to write an endpoint and assign a SQL query to be executed when anyone hits it, also it enables you to define validation rules so you can validate the request body/query params. `sqler` uses `nginx` style configuration language ([`HCL`](https://github.com/hashicorp/hcl)).
 
 Features
 ========
