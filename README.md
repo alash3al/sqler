@@ -2,6 +2,15 @@ SQLer
 =====
 > `SQL-er` is a tiny http server that applies the old `CGI` concept but for `SQL` queries, it enables you to an endpoint and assign a SQL query to be executed when anyone hits it, also it enables you to define validation rules so you can validate the request body/query params. `sqler` uses `nginx` style configuration language ([`HCL`](https://github.com/hashicorp/hcl)).
 
+Features
+========
+- Standalone with no dependencies.
+- Works with most of SQL databases out there including (`SQL Server`, `MYSQL`, `SQLITE`, `PostgreSQL`, `Cockroachdb`)
+- Built-in Validators
+- Built-in `sql escaper` function
+- Uses ([`HCL`](https://github.com/hashicorp/hcl)) configuration language
+- You can load multiple configuration files not just one, based on `unix glob` style pattern.
+
 Configuration Overview
 ======================
 ```hcl
@@ -58,3 +67,15 @@ Supported SQL Engines
 - `postgresql`
 - `cockroachdb`
 - `mssql`
+
+Supported Validation Rules
+==========================
+- Simple Validations methods with no args: [here](https://godoc.org/github.com/asaskevich/govalidator#TagMap)
+- Advanced Validations methods with args: [here](https://godoc.org/github.com/asaskevich/govalidator#ParamTagMap) 
+
+License
+========
+> Copyright 2018 The SQLer Authors. All rights reserved.
+> Use of this source code is governed by a Apache 2.0
+> license that can be found in the [LICENSE](/License) file.
+
