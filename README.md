@@ -7,7 +7,7 @@ Features
 - Standalone with no dependencies.
 - Works with most of SQL databases out there including (`SQL Server`, `MYSQL`, `SQLITE`, `PostgreSQL`, `Cockroachdb`)
 - Built-in Validators
-- Autmatically uses prepared statements
+- Automatically uses prepared statements
 - Uses ([`HCL`](https://github.com/hashicorp/hcl)) configuration language
 - You can load multiple configuration files not just one, based on `unix glob` style pattern
 - Each `SQL` query could be named as `Macro`
