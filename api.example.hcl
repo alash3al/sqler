@@ -74,8 +74,6 @@ databases {
         // there is a global variable called `$result`,
         // `$result` holds the result of the sql execution.
         (function(){
-            throw 'aaa'
-            return ""
             newResult = []
 
             for ( i in $result ) {

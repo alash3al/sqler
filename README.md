@@ -8,6 +8,7 @@ Features
 - Works with most of SQL databases out there including (`SQL Server`, `MYSQL`, `SQLITE`, `PostgreSQL`, `Cockroachdb`)
 - Built-in RESTful server
 - Built-in RESP `Redis Protocol`, you connect to `SQLer` using any `redis` client
+- Built-in `Javascript` interpreter to easily transform the result
 - Built-in Validators
 - Automatically uses prepared statements
 - Uses ([`HCL`](https://github.com/hashicorp/hcl)) configuration language
@@ -103,8 +104,6 @@ databases {
         // there is a global variable called `$result`,
         // `$result` holds the result of the sql execution.
         (function(){
-            throw 'aaa'
-            return ""
             newResult = []
 
             for ( i in $result ) {
