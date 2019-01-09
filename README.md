@@ -9,7 +9,7 @@ Features
 - Built-in RESTful server
 - Built-in RESP `Redis Protocol`, you connect to `SQLer` using any `redis` client
 - Built-in Validators
-- Autmatically uses prepared statements
+- Automatically uses prepared statements
 - Uses ([`HCL`](https://github.com/hashicorp/hcl)) configuration language
 - You can load multiple configuration files not just one, based on `unix glob` style pattern
 - Each `SQL` query could be named as `Macro`
@@ -121,7 +121,7 @@ Supported Validation Rules
 - Simple Validations methods with no args: [here](https://godoc.org/github.com/asaskevich/govalidator#TagMap)
 - Advanced Validations methods with args: [here](https://godoc.org/github.com/asaskevich/govalidator#ParamTagMap) 
 
-Supported Uitls
+Supported Utils
 ===============
 - `.Hash <method>` - hash the specified input using the specified method [md5, sha1, sha256, sha512, bcrypt], `{{ "data" | .Hash "md5" }}`
 - `.UnixTime` - returns the unix time in seconds, `{{ .UnixTime }}`
