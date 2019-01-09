@@ -6,6 +6,8 @@ Features
 ========
 - Standalone with no dependencies.
 - Works with most of SQL databases out there including (`SQL Server`, `MYSQL`, `SQLITE`, `PostgreSQL`, `Cockroachdb`)
+- Built-in RESTful server
+- Built-in RESP `Redis Protocol`, you connect to `SQLer` using any `redis` client
 - Built-in Validators
 - Autmatically uses prepared statements
 - Uses ([`HCL`](https://github.com/hashicorp/hcl)) configuration language
