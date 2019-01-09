@@ -51,12 +51,12 @@ adduser {
     // sqler will attempt to send the incoming authorization header
     // to the provided endpoint(s) as `Authorization`,
     // each endpoint MUST return `200 OK` so sqler can continue, other wise,
-    // sqler will break the request and return back the client with the error occured.
+    // sqler will break the request and return back the client with the error occurred.
     // each authorizer has a method and a url.
     // authorizers = ["GET http://web.hook/api/authorize", "GET http://web.hook/api/allowed?roles=admin,root,super_admin"]
 
     // the validation rules
-    // you can specifiy seprated rules for each request method!
+    // you can specify separated rules for each request method!
     rules {
         user_name = ["required"]
         user_email =  ["required", "email"]
@@ -67,7 +67,7 @@ adduser {
     exec = <<SQL
        {{ template "_boot" }}
 
-        /* let's bind a vars to be used within our internal prepared statment */
+        /* let's bind a vars to be used within our internal prepared statement */
         {{ .BindVar "name" .Input.user_name }}
         {{ .BindVar "email" .Input.user_email }}
         {{ .BindVar "emailx" .Input.user_email }}
