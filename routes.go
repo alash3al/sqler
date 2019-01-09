@@ -31,21 +31,11 @@ func routeExecMacro(c echo.Context) error {
 		input[k] = v
 	}
 
-	if len(macro.Rules) > 0 {
-		result := Validate(input, macro.Rules)
-		if len(result) > 0 {
-			return c.JSON(422, map[string]interface{}{
-				"success": false,
-				"errors":  result,
-			})
-		}
-	}
-
-	out, err := macrosManager.Call(c.Param("macro"), input)
+	out, err := macro.Call(input)
 	if err != nil {
 		return c.JSON(500, map[string]interface{}{
 			"success": false,
-			"error":   err.Error(),
+			"error":   out,
 		})
 	}
 

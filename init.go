@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/bwmarrin/snowflake"
 
@@ -20,6 +21,8 @@ import (
 
 func init() {
 	flag.Parse()
+
+	runtime.GOMAXPROCS(*flagWorkers)
 
 	if _, err := sqlx.Connect(*flagDBDriver, *flagDBDSN); err != nil {
 		fmt.Println(color.RedString("[%s] - connection error - (%s)", *flagDBDriver, err.Error()))

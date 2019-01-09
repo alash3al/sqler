@@ -1,3 +1,6 @@
+// Copyright 2018 The SQLer Authors. All rights reserved.
+// Use of this source code is governed by a Apache 2.0
+// license that can be found in the LICENSE file.
 package main
 
 import (
@@ -6,7 +9,25 @@ import (
 
 	"github.com/go-resty/resty"
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 )
+
+// initialize RESTful server
+func initRESTServer() error {
+	e := echo.New()
+	e.HideBanner = true
+	e.HidePort = true
+
+	e.Pre(middleware.RemoveTrailingSlash())
+	e.Use(middleware.CORS())
+	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{Level: 9}))
+	e.Use(middleware.Recover())
+
+	e.GET("/", routeIndex)
+	e.Any("/:macro", routeExecMacro, middlewareAuthorize)
+
+	return e.Start(*flagRESTListenAddr)
+}
 
 // middlewareAuthorize - the authorizer middleware
 func middlewareAuthorize(next echo.HandlerFunc) echo.HandlerFunc {

@@ -5,15 +5,18 @@ package main
 
 import (
 	"flag"
+	"runtime"
 
 	"github.com/bwmarrin/snowflake"
 )
 
 var (
-	flagDBDriver   = flag.String("engine", "mysql", "the sql engine/driver to be used")
-	flagDBDSN      = flag.String("dsn", "root:root@tcp(127.0.0.1)/test?multiStatements=true", "the data source name for the selected engine")
-	flagAPIFile    = flag.String("api", "./api.example.hcl", "the validators used before processing the sql, it accepts a glob style pattern")
-	flagListenAddr = flag.String("listen", ":8025", "the rest api listen address")
+	flagDBDriver       = flag.String("engine", "mysql", "the sql engine/driver to be used")
+	flagDBDSN          = flag.String("dsn", "root:root@tcp(127.0.0.1)/test?multiStatements=true", "the data source name for the selected engine")
+	flagAPIFile        = flag.String("api", "./api.example.hcl", "the validators used before processing the sql, it accepts a glob style pattern")
+	flagRESTListenAddr = flag.String("rest", ":8025", "the rest api listen address")
+	flagRESPListenAddr = flag.String("resp", ":3678", "the rest api listen address")
+	flagWorkers        = flag.Int("workers", runtime.NumCPU(), "the maximum workers count")
 )
 
 var (

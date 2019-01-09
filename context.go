@@ -72,6 +72,7 @@ func (c Context) Uniqid() string {
 	return snow.Generate().String()
 }
 
+// BindVar - bind a named var for prepared statements
 func (c *Context) BindVar(name string, value interface{}) string {
 	c.SQLArgs[name] = value
 	return ""

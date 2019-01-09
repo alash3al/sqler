@@ -26,6 +26,7 @@ Configuration Overview
 // create a macro/endpoint called "_boot",
 // this macro is private "used within other macros" 
 // because it starts with "_".
+// this rule only used within `RESTful` context.
 _boot {
     // the query we want to execute
     exec = <<SQL
@@ -45,6 +46,7 @@ _boot {
 adduser {
     // what request method will this macro be called
     // default: ["ANY"]
+    // this only used within `RESTful` context.
     methods = ["POST"]
 
     // authorizers,
@@ -53,6 +55,7 @@ adduser {
     // each endpoint MUST return `200 OK` so sqler can continue, other wise,
     // sqler will break the request and return back the client with the error occured.
     // each authorizer has a method and a url.
+    // this only used within `RESTful` context.
     // authorizers = ["GET http://web.hook/api/authorize", "GET http://web.hook/api/allowed?roles=admin,root,super_admin"]
 
     // the validation rules
