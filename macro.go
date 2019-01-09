@@ -10,6 +10,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/dop251/goja"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -19,6 +20,7 @@ type Macro struct {
 	Methods     []string            `json:"method"`
 	Rules       map[string][]string `json:"rules"`
 	Exec        string              `json:"exec"`
+	Transformer string              `json:"transformer"`
 	name        string
 	compiled    *template.Template
 }
@@ -36,10 +38,15 @@ func (m *Macro) Call(input map[string]interface{}) (interface{}, error) {
 
 	src, err := m.compileMacro(ctx)
 	if err != nil {
-		return nil, err
+		return err.Error(), err
 	}
 
-	return m.execSQLQuery(strings.Split(src, ";"), ctx.SQLArgs)
+	out, err := m.execSQLQuery(strings.Split(src, ";"), ctx.SQLArgs)
+	if err != nil {
+		return err.Error(), err
+	}
+
+	return m.execTransformer(out, m.Transformer)
 }
 
 // compileMacro - compile the specified macro and pass the specified ctx
@@ -135,4 +142,16 @@ func (m *Macro) scanSQLRow(rows *sqlx.Rows) (map[string]interface{}, error) {
 	return row, nil
 }
 
-// func (m *Macro) execJS()
+// execTransformer - run the transformer function
+func (m *Macro) execTransformer(data interface{}, transformer string) (interface{}, error) {
+	vm := goja.New()
+
+	vm.Set("$result", data)
+
+	v, err := vm.RunString(transformer)
+	if err != nil {
+		return nil, err
+	}
+
+	return v, nil
+}

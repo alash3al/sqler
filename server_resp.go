@@ -92,7 +92,7 @@ func commandExecMacro(conn redcon.Conn, macro *Macro, input map[string]interface
 		conn.WriteArray(2)
 		conn.WriteInt(0)
 
-		j, _ := json.Marshal(out)
+		j, _ := json.Marshal(err.Error())
 
 		conn.WriteBulk(j)
 

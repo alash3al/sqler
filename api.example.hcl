@@ -66,21 +66,23 @@ adduser {
     SQL
 }
 
-proclist {
-    exec = "SHOW PROCESSLIST"
-}
-
-tables {
-    exec = "SELECT * FROM information_schema.tables"
-}
-
+// list all databases, and run a transformer function
 databases {
     exec = "SHOW DATABASES"
-}
 
-users {
-    exec = <<SQL
-        select name, count(*) from users  
-        group by name;
-    SQL
+    transformer = <<JS
+        // there is a global variable called `$result`,
+        // `$result` holds the result of the sql execution.
+        (function(){
+            throw 'aaa'
+            return ""
+            newResult = []
+
+            for ( i in $result ) {
+                newResult.push($result[i].Database)
+            }
+
+            return newResult
+        })()
+    JS
 }

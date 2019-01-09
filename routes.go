@@ -35,7 +35,7 @@ func routeExecMacro(c echo.Context) error {
 	if err != nil {
 		return c.JSON(500, map[string]interface{}{
 			"success": false,
-			"error":   out,
+			"error":   err.Error(),
 		})
 	}
 
