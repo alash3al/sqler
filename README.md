@@ -58,7 +58,7 @@ adduser {
     // sqler will break the request and return back the client with the error occurred.
     // each authorizer has a method and a url.
     // this only used within `RESTful` context.
-    // authorizers = ["GET http://web.hook/api/authorize", "GET http://web.hook/api/allowed?roles=admin,root,super_admin"]
+    authorizers = ["GET http://web.hook/api/authorize", "GET http://web.hook/api/allowed?roles=admin,root,super_admin"]
 
     // the validation rules
     // you can specify separated rules for each request method!
@@ -95,17 +95,27 @@ adduser {
     SQL
 }
 
-proclist {
-    exec = "SHOW PROCESSLIST"
-}
-
-tables {
-    exec = "SELECT * FROM information_schema.tables"
-}
-
+// list all databases, and run a transformer function
 databases {
     exec = "SHOW DATABASES"
+
+    transformer = <<JS
+        // there is a global variable called `$result`,
+        // `$result` holds the result of the sql execution.
+        (function(){
+            throw 'aaa'
+            return ""
+            newResult = []
+
+            for ( i in $result ) {
+                newResult.push($result[i].Database)
+            }
+
+            return newResult
+        })()
+    JS
 }
+
 ```
 
 Supported SQL Engines
