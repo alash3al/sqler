@@ -144,6 +144,9 @@ func (m *Macro) scanSQLRow(rows *sqlx.Rows) (map[string]interface{}, error) {
 
 // execTransformer - run the transformer function
 func (m *Macro) execTransformer(data interface{}, transformer string) (interface{}, error) {
+	if transformer == "" {
+		return data, nil
+	}
 	vm := goja.New()
 
 	vm.Set("$result", data)
