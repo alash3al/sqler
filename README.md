@@ -116,7 +116,7 @@ Supported Validation Rules
 - Simple Validations methods with no args: [here](https://godoc.org/github.com/asaskevich/govalidator#TagMap)
 - Advanced Validations methods with args: [here](https://godoc.org/github.com/asaskevich/govalidator#ParamTagMap) 
 
-Supported Uitls
+Supported Utils
 ===============
 - `.Hash <method>` - hash the specified input using the specified method [md5, sha1, sha256, sha512, bcrypt], `{{ "data" | .Hash "md5" }}`
 - `.UnixTime` - returns the unix time in seconds, `{{ .UnixTime }}`
