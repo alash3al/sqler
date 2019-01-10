@@ -20,6 +20,11 @@ import (
 )
 
 func init() {
+	usage := flag.Usage
+	flag.Usage = func() {
+		fmt.Println(color.MagentaString(sqlerBrand))
+		usage()
+	}
 	flag.Parse()
 
 	runtime.GOMAXPROCS(*flagWorkers)

@@ -137,6 +137,12 @@ Supported Utils
 - `.UnixNanoTime` - returns the unix time in nanoseconds, `{{ .UnixNanoTime }}`
 - `.Uniqid` - returns a unique id, `{{ .Uniqid }}`
 
+Usage
+======
+- You install `sqler` using the right binary for your `os` from the releases page.
+- Let's say that you downloaded `sqler_darwin_amd64`
+- Let's rename it to `sqler`, and copy it to `/usr/local/bin`
+
 License
 ========
 > Copyright 2019 The SQLer Authors. All rights reserved.
