@@ -117,14 +117,6 @@ databases {
 
 ```
 
-Supported SQL Engines
-=====================
-- `sqlite3`
-- `mysql`
-- `postgresql`
-- `cockroachdb`
-- `sqlserver`
-
 Supported Validation Rules
 ==========================
 - Simple Validations methods with no args: [here](https://godoc.org/github.com/asaskevich/govalidator#TagMap)
@@ -142,6 +134,36 @@ Usage
 - You install `sqler` using the right binary for your `os` from the releases page.
 - Let's say that you downloaded `sqler_darwin_amd64`
 - Let's rename it to `sqler`, and copy it to `/usr/local/bin`
+- Now just run `sqler -h`, you will the next  
+```bash
+                         ____   ___  _
+                        / ___| / _ \| |    ___ _ __
+                        \___ \| | | | |   / _ \ '__|
+                         ___) | |_| | |__|  __/ |
+                        |____/ \__\_\_____\___|_|
+
+        turn your SQL queries into safe valid RESTful apis.
+
+
+  -config string
+        the config file(s) that contains your endpoints configs, it accepts comma seprated list of glob style pattern (default "./config.example.hcl")
+  -driver string
+        the sql driver to be used (default "mysql")
+  -dsn string
+        the data source name for the selected engine (default "root:root@tcp(127.0.0.1)/test?multiStatements=true")
+  -resp string
+        the rest api listen address (default ":3678")
+  -rest string
+        the rest api listen address (default ":8025")
+  -workers int
+        the maximum workers count (default 4)
+```
+
+- you need specify which driver you need from the following:
+  - `mysql`         its dsn: `usrname:password@tcp(server:port)/dbname?option1=value1&...`
+  - `postgres`      its dsn: `postgresql://username:password@server:port/dbname?option1=value1`
+  - `sqlite3`       its dsn: `/path/to/db.sqlite?option1=value1`
+- you can specifiy multiple files for `-config`, i.e `-config="/my/config/dir/*.hcl,/my/config/dir2/*.hcl"`
 
 License
 ========

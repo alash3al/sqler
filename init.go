@@ -29,22 +29,31 @@ func init() {
 
 	runtime.GOMAXPROCS(*flagWorkers)
 
-	if _, err := sqlx.Connect(*flagDBDriver, *flagDBDSN); err != nil {
-		fmt.Println(color.RedString("[%s] - connection error - (%s)", *flagDBDriver, err.Error()))
-		os.Exit(0)
+	{
+		tstconn, err := sqlx.Connect(*flagDBDriver, *flagDBDSN)
+		if err != nil {
+			fmt.Println(color.RedString("[%s] %s - connection error - (%s)", *flagDBDriver, *flagDBDSN, err.Error()))
+			os.Exit(0)
+		}
+		tstconn.Close()
 	}
 
-	manager, err := NewManager(*flagAPIFile)
-	if err != nil {
-		fmt.Println(color.RedString("(%s)", err.Error()))
-		os.Exit(0)
+	{
+		manager, err := NewManager(*flagAPIFile)
+		if err != nil {
+			fmt.Println(color.RedString("(%s)", err.Error()))
+			os.Exit(0)
+		}
+		macrosManager = manager
 	}
 
-	macrosManager = manager
+	{
+		var err error
 
-	snow, err = snowflake.NewNode(1)
-	if err != nil {
-		fmt.Println(color.RedString("(%s)", err.Error()))
-		os.Exit(0)
+		snow, err = snowflake.NewNode(1)
+		if err != nil {
+			fmt.Println(color.RedString("(%s)", err.Error()))
+			os.Exit(0)
+		}
 	}
 }

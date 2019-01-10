@@ -4,8 +4,10 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/hashicorp/hcl"
@@ -23,27 +25,33 @@ func NewManager(configpath string) (*Manager, error) {
 	manager.macros = make(map[string]*Macro)
 	manager.compiled = template.New("main")
 
-	files, _ := filepath.Glob(configpath)
+	for _, p := range strings.Split(configpath, ",") {
+		files, _ := filepath.Glob(p)
 
-	for _, file := range files {
-		data, err := ioutil.ReadFile(file)
-		if err != nil {
-			return nil, err
+		if len(files) < 1 {
+			return nil, fmt.Errorf("invalid path (%s)", p)
 		}
 
-		var config map[string]*Macro
-		if err := hcl.Unmarshal(data, &config); err != nil {
-			return nil, err
-		}
-
-		for k, v := range config {
-			manager.macros[k] = v
-			_, err := manager.compiled.New(k).Parse(v.Exec)
+		for _, file := range files {
+			data, err := ioutil.ReadFile(file)
 			if err != nil {
 				return nil, err
 			}
-			v.compiled = manager.compiled
-			v.name = k
+
+			var config map[string]*Macro
+			if err := hcl.Unmarshal(data, &config); err != nil {
+				return nil, err
+			}
+
+			for k, v := range config {
+				manager.macros[k] = v
+				_, err := manager.compiled.New(k).Parse(v.Exec)
+				if err != nil {
+					return nil, err
+				}
+				v.compiled = manager.compiled
+				v.name = k
+			}
 		}
 	}
 
