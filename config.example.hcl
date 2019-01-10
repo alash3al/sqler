@@ -29,7 +29,7 @@ adduser {
     // sqler will break the request and return back the client with the error occured.
     // each authorizer has a method and a url, if you ignored the method
     // it will be automatically set to `GET`.
-    // authorizers = ["GET http://web.hook/api/authorize", "GET http://web.hook/api/allowed?roles=admin,root,super_admin"]
+    authorizers = ["GET http://requestbin.fullcontact.com/wxu5opwx"]
 
     // the validation rules
     // you can specifiy seprated rules for each request method!
