@@ -158,21 +158,23 @@ Usage
   -workers int
         the maximum workers count (default 4)
 ```
-
-- you need specify which driver you need from the following:
-  - `mysql`             its dsn: `usrname:password@tcp(server:port)/dbname?option1=value1&...`
-  - `postgres`          its dsn: `postgresql://username:password@server:port/dbname?option1=value1`
-  - `sqlite3`           its dsn: `/path/to/db.sqlite?option1=value1`
-  - `hdb` (`SAP HANA`)  its dsn: `hdb://user:password@host:port`
-  - `mssql/sqlserver`   its dsn can be specified as one of the following:
-    -   `sqlserver://username:password@host/instance?param1=value&param2=value` 
-    -   `sqlserver://username:password@host:port?param1=value&param2=value`
-    -   `sqlserver://sa@localhost/SQLExpress?database=master&connection+timeout=30`
-    -   `server=localhost\\SQLExpress;user id=sa;database=master;app name=MyAppName`
-    -   `server=localhost;user id=sa;database=master;app name=MyAppName`
-    -   `odbc:server=localhost\\SQLExpress;user id=sa;database=master;app name=MyAppName`
-    -   `odbc:server=localhost;user id=sa;database=master;app name=MyAppName`
 - you can specifiy multiple files for `-config`, i.e `-config="/my/config/dir/*.hcl,/my/config/dir2/*.hcl"`
+- you need specify which driver you need from the following:
+
+| Driver | DSN |
+---------| ----|
+| `mysql`| `usrname:password@tcp(server:port)/dbname?option1=value1&...`|
+| `postgres`| `postgresql://username:password@server:port/dbname?option1=value1`|
+| `sqlite3`| `/path/to/db.sqlite?option1=value1`|
+| `sqlserver` | `sqlserver://username:password@host/instance?param1=value&param2=value` |
+|             | `sqlserver://username:password@host:port?param1=value&param2=value`|
+|             | `sqlserver://sa@localhost/SQLExpress?database=master&connection+timeout=30`|
+| `mssql` | `server=localhost\\SQLExpress;user id=sa;database=master;app name=MyAppName`|
+|         | `server=localhost;user id=sa;database=master;app name=MyAppName`|
+|         | `odbc:server=localhost\\SQLExpress;user id=sa;database=master;app name=MyAppName` |
+|         | `odbc:server=localhost;user id=sa;database=master;app name=MyAppName` |
+| `hdb` (SAP HANA) |   `hdb://user:password@host:port` |
+
 
 License
 ========
