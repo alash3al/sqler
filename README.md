@@ -160,9 +160,9 @@ Usage
 ```
 
 - you need specify which driver you need from the following:
-  - `mysql`         its dsn: `usrname:password@tcp(server:port)/dbname?option1=value1&...`
-  - `postgres`      its dsn: `postgresql://username:password@server:port/dbname?option1=value1`
-  - `sqlite3`       its dsn: `/path/to/db.sqlite?option1=value1`
+  - `mysql`         its dsn: `username:password@tcp(server:port)/dbname?option1=value1&...`
+  - `postgres`      its dsn: `postgresql://username:password@server:port/dbname?option1=value1&...`
+  - `sqlite3`       its dsn: `/path/to/db.sqlite?option1=value1&...`
 - you can specifiy multiple files for `-config`, i.e `-config="/my/config/dir/*.hcl,/my/config/dir2/*.hcl"`
 
 License
