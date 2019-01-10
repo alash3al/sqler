@@ -11,6 +11,7 @@ import (
 
 	"github.com/bwmarrin/snowflake"
 
+	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
@@ -25,8 +26,8 @@ func init() {
 		fmt.Println(color.MagentaString(sqlerBrand))
 		usage()
 	}
-	flag.Parse()
 
+	flag.Parse()
 	runtime.GOMAXPROCS(*flagWorkers)
 
 	{

@@ -75,7 +75,9 @@ func middlewareAuthorize(next echo.HandlerFunc) echo.HandlerFunc {
 					"error":   fmt.Sprintf("authorizer: %s is invalid", endpoint),
 				})
 			}
-			resp, err := resty.R().SetHeaders(map[string]string{}).Execute(parts[0], parts[1])
+			resp, err := resty.R().SetHeaders(map[string]string{
+				"Authorization": c.Request().Header.Get("Authorization"),
+			}).Execute(parts[0], parts[1])
 			if err != nil {
 				return c.JSON(500, map[string]interface{}{
 					"success": false,
