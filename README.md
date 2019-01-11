@@ -152,9 +152,9 @@ Usage
   -dsn string
         the data source name for the selected engine (default "root:root@tcp(127.0.0.1)/test?multiStatements=true")
   -resp string
-        the rest api listen address (default ":3678")
+        the resp (redis protocol) server listen address (default ":3678")
   -rest string
-        the rest api listen address (default ":8025")
+        the http restful api listen address (default ":8025")
   -workers int
         the maximum workers count (default 4)
 ```
