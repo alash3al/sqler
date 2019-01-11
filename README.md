@@ -72,6 +72,7 @@ Quick Tour
 | `sqlite3`| `/path/to/db.sqlite?option1=value1`|
 | `sqlserver` | `sqlserver://username:password@host/instance?param1=value&param2=value` |
 |             | `sqlserver://username:password@host:port?param1=value&param2=value`|
+| `tidb`| `usrname:password@tcp(server:port)/dbname?option1=value1&...`|
 |             | `sqlserver://sa@localhost/SQLExpress?database=master&connection+timeout=30`|
 | `mssql` | `server=localhost\\SQLExpress;user id=sa;database=master;app name=MyAppName`|
 |         | `server=localhost;user id=sa;database=master;app name=MyAppName`|
