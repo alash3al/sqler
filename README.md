@@ -161,7 +161,7 @@ Usage
 - you can specifiy multiple files for `-config`, i.e `-config="/my/config/dir/*.hcl,/my/config/dir2/*.hcl"`
 - you need specify which driver you need from the following:
 
-| Driver | DSN |
+| Driver                 | DSN |
 ---------| ----|
 | `mysql`| `usrname:password@tcp(server:port)/dbname?option1=value1&...`|
 | `postgres`| `postgresql://username:password@server:port/dbname?option1=value1`|
@@ -176,6 +176,38 @@ Usage
 | `hdb` (SAP HANA) |   `hdb://user:password@host:port` |
 | `clickhouse` (Yandex ClickHouse) |   `tcp://host1:9000?username=user&password=qwerty&database=clicks&read_timeout=10&write_timeout=20&alt_hosts=host2:9000,host3:9000` |
 
+
+REST vs RESP
+=============
+> RESTful server could be used to interact directly with i.e `mobile, browser, ... etc`, in this mode `SQLer` is protected by `authorizers`, which gives you the abbility to check authorization against another 3rd-party api.  
+> Each macro you add to the configuration file(s) you can access to it by issuing a http request to `/<macro-name>`, every query param and json body will be passed to the macro `.Input`.
+
+> RESP server is just a basic `REDIS` compatible server, you connect to it using any `REDIS` client out there, even `redis-cli`, just open `redis-cli -p 3678 list` to list all available macros (`commands`), you can execute any macro as a redis command and pass the arguments as a json encoded data, i.e `redis-cli -p 3678 adduser "{\"user_name\": \"u6\", \"user_email\": \"email@tld.com\", \"user_password\":\"pass@123\"}"`.
+
+Data Transformation
+====================
+> In some cases we need to transform the resulted data into something more friendly to our API consumers, so I added `javascript` interpreter to `SQLer` so we can transform our data, each js code has a global variable called `$result`, it holds the result of the `exec` section, you should write your code like the following:
+
+```hcl
+// list all databases, and run a transformer function
+databases {
+    exec = "SHOW DATABASES"
+
+    transformer = <<JS
+        // there is a global variable called `$result`,
+        // `$result` holds the result of the sql execution.
+        (function(){
+            newResult = []
+
+            for ( i in $result ) {
+                newResult.push($result[i].Database)
+            }
+
+            return newResult
+        })()
+    JS
+}
+```
 
 License
 ========
