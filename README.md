@@ -30,7 +30,7 @@ Features
 - You can load multiple configuration files not just one, based on `unix glob` style pattern
 - Each `SQL` query could be named as `Macro`
 - You can use `Go` [`text/template`](https://golang.org/pkg/text/template/) within each macro
-- Each macro have its own `Context` (`query params` + `body params`) as `.Input` which is `map[string]interface{}`, and `.Utils` which is a list of helper functions, currently it contains only `SQLEscape`.
+- Each macro has its own `Context` (`query params` + `body params`) as `.Input` which is `map[string]interface{}`, and `.Utils` which is a list of helper functions, currently it contains only `SQLEscape`.
 - You can define `authorizers`, an `authorizer` is just a simple webhook that enables `sqler` to verify whether the request should be done or not.
 
 Quick Tour
