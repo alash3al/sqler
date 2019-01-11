@@ -8,6 +8,7 @@ Table Of Contents
 - [Table Of Contents](#table-of-contents)
 - [Features](#features)
 - [Quick Tour](#quick-tour)
+- [Supprted DBMSs](#supprted-dbmss)
 - [Configuration Overview](#configuration-overview)
 - [Supported Validation Rules](#supported-validation-rules)
 - [Supported Utils](#supported-utils)
@@ -65,8 +66,8 @@ Quick Tour
 - you can specifiy multiple files for `-config` as [configuration](#configuration-overview), i.e `-config="/my/config/dir/*.hcl,/my/config/dir2/*.hcl"`
 - you need specify which driver you need and its `dsn` from the following:
 
-| Driver                 | DSN |
----------| ----|
+| Driver | DSN |
+---------| ------ |
 | `mysql`| `usrname:password@tcp(server:port)/dbname?option1=value1&...`|
 | `postgres`| `postgresql://username:password@server:port/dbname?option1=value1`|
 | `sqlite3`| `/path/to/db.sqlite?option1=value1`|
@@ -80,6 +81,15 @@ Quick Tour
 | `hdb` (SAP HANA) |   `hdb://user:password@host:port` |
 | `clickhouse` (Yandex ClickHouse) |   `tcp://host1:9000?username=user&password=qwerty&database=clicks&read_timeout=10&write_timeout=20&alt_hosts=host2:9000,host3:9000` |
 
+
+Supprted DBMSs
+===============
+- `MYSQL`, `TiDB`, `MariaDB`, `Percona` and any MYSQL compatible server uses `mysql` driver.
+- `PostgreSQL`, `CockroachDB` and any PostgreSQL compatible server uses `postgres` driver.
+- `SQL Server`, `MSSQL`, `ADO`, `ODBC` uses `sqlserver` or `mssql` driver.
+- `SQLITE`, uses `sqlite3` driver.
+- `HANA` (SAP), uses `hdb` driver.
+- `Clickhouse`, uses `clickhouse` driver.
 
 Configuration Overview
 ======================
@@ -174,6 +184,7 @@ databases {
 }
 
 ```
+
 
 Supported Validation Rules
 ==========================
