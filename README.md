@@ -226,7 +226,7 @@ Issue/Suggestion/Contribution ?
 
 Author
 =======
-> I'm Mohamed Al Ashaal, just a problem solver :), you can view more projects from me [here](https://github.com/alash3al), and here is my [email](mailto:m7medalash3al@gmail.com)
+> I'm Mohamed Al Ashaal, just a problem solver :), you can view more projects from me [here](https://github.com/alash3al), and here is my email [m7medalash3al@gmail.com](mailto:m7medalash3al@gmail.com)
 
 License
 ========
