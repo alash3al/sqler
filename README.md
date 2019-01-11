@@ -2,6 +2,21 @@ SQLer
 =====
 > `SQL-er` is a tiny http server that applies the old `CGI` concept but for `SQL` queries, it enables you to write an endpoint and assign a SQL query to be executed when anyone hits it, also it enables you to define validation rules so you can validate the request body/query params. `sqler` uses `nginx` style configuration language ([`HCL`](https://github.com/hashicorp/hcl)).
 
+Table Of Contents
+=================
+- [SQLer](#sqler)
+- [Table Of Contents](#table-of-contents)
+- [Features](#features)
+- [Quick Tour](#quick-tour)
+- [Configuration Overview](#configuration-overview)
+- [Supported Validation Rules](#supported-validation-rules)
+- [Supported Utils](#supported-utils)
+- [REST vs RESP](#rest-vs-resp)
+- [Data Transformation](#data-transformation)
+- [Issue/Suggestion/Contribution ?](#issuesuggestioncontribution)
+- [Author](#author)
+- [License](#license)
+
 Features
 ========
 - Standalone with no dependencies.
@@ -18,10 +33,53 @@ Features
 - Each macro have its own `Context` (`query params` + `body params`) as `.Input` which is `map[string]interface{}`, and `.Utils` which is a list of helper functions, currently it contains only `SQLEscape`.
 - You can define `authorizers`, an `authorizer` is just a simple webhook that enables `sqler` to verify whether the request should be done or not.
 
-Download
-========
-- FromSource: `go get github.com/alash3al/sqler`
-- BinaryRelease: go to [releases page](https://github.com/alash3al/sqler/releases)
+Quick Tour
+==========
+- You install `sqler` using the right binary for your `os` from the [releases](https://github.com/alash3al/sqler/releases) page.
+- Let's say that you downloaded `sqler_darwin_amd64`
+- Let's rename it to `sqler`, and copy it to `/usr/local/bin`
+- Now just run `sqler -h`, you will the next  
+```bash
+                         ____   ___  _
+                        / ___| / _ \| |    ___ _ __
+                        \___ \| | | | |   / _ \ '__|
+                         ___) | |_| | |__|  __/ |
+                        |____/ \__\_\_____\___|_|
+
+        turn your SQL queries into safe valid RESTful apis.
+
+
+  -config string
+        the config file(s) that contains your endpoints configs, it accepts comma seprated list of glob style pattern (default "./config.example.hcl")
+  -driver string
+        the sql driver to be used (default "mysql")
+  -dsn string
+        the data source name for the selected engine (default "root:root@tcp(127.0.0.1)/test?multiStatements=true")
+  -resp string
+        the resp (redis protocol) server listen address (default ":3678")
+  -rest string
+        the http restful api listen address (default ":8025")
+  -workers int
+        the maximum workers count (default 4)
+```
+- you can specifiy multiple files for `-config` as [configuration](#configuration-overview), i.e `-config="/my/config/dir/*.hcl,/my/config/dir2/*.hcl"`
+- you need specify which driver you need and its `dsn` from the following:
+
+| Driver                 | DSN |
+---------| ----|
+| `mysql`| `usrname:password@tcp(server:port)/dbname?option1=value1&...`|
+| `postgres`| `postgresql://username:password@server:port/dbname?option1=value1`|
+| `sqlite3`| `/path/to/db.sqlite?option1=value1`|
+| `sqlserver` | `sqlserver://username:password@host/instance?param1=value&param2=value` |
+|             | `sqlserver://username:password@host:port?param1=value&param2=value`|
+|             | `sqlserver://sa@localhost/SQLExpress?database=master&connection+timeout=30`|
+| `mssql` | `server=localhost\\SQLExpress;user id=sa;database=master;app name=MyAppName`|
+|         | `server=localhost;user id=sa;database=master;app name=MyAppName`|
+|         | `odbc:server=localhost\\SQLExpress;user id=sa;database=master;app name=MyAppName` |
+|         | `odbc:server=localhost;user id=sa;database=master;app name=MyAppName` |
+| `hdb` (SAP HANA) |   `hdb://user:password@host:port` |
+| `clickhouse` (Yandex ClickHouse) |   `tcp://host1:9000?username=user&password=qwerty&database=clicks&read_timeout=10&write_timeout=20&alt_hosts=host2:9000,host3:9000` |
+
 
 Configuration Overview
 ======================
@@ -129,53 +187,6 @@ Supported Utils
 - `.UnixNanoTime` - returns the unix time in nanoseconds, `{{ .UnixNanoTime }}`
 - `.Uniqid` - returns a unique id, `{{ .Uniqid }}`
 
-Usage
-======
-- You install `sqler` using the right binary for your `os` from the releases page.
-- Let's say that you downloaded `sqler_darwin_amd64`
-- Let's rename it to `sqler`, and copy it to `/usr/local/bin`
-- Now just run `sqler -h`, you will the next  
-```bash
-                         ____   ___  _
-                        / ___| / _ \| |    ___ _ __
-                        \___ \| | | | |   / _ \ '__|
-                         ___) | |_| | |__|  __/ |
-                        |____/ \__\_\_____\___|_|
-
-        turn your SQL queries into safe valid RESTful apis.
-
-
-  -config string
-        the config file(s) that contains your endpoints configs, it accepts comma seprated list of glob style pattern (default "./config.example.hcl")
-  -driver string
-        the sql driver to be used (default "mysql")
-  -dsn string
-        the data source name for the selected engine (default "root:root@tcp(127.0.0.1)/test?multiStatements=true")
-  -resp string
-        the resp (redis protocol) server listen address (default ":3678")
-  -rest string
-        the http restful api listen address (default ":8025")
-  -workers int
-        the maximum workers count (default 4)
-```
-- you can specifiy multiple files for `-config`, i.e `-config="/my/config/dir/*.hcl,/my/config/dir2/*.hcl"`
-- you need specify which driver you need from the following:
-
-| Driver                 | DSN |
----------| ----|
-| `mysql`| `usrname:password@tcp(server:port)/dbname?option1=value1&...`|
-| `postgres`| `postgresql://username:password@server:port/dbname?option1=value1`|
-| `sqlite3`| `/path/to/db.sqlite?option1=value1`|
-| `sqlserver` | `sqlserver://username:password@host/instance?param1=value&param2=value` |
-|             | `sqlserver://username:password@host:port?param1=value&param2=value`|
-|             | `sqlserver://sa@localhost/SQLExpress?database=master&connection+timeout=30`|
-| `mssql` | `server=localhost\\SQLExpress;user id=sa;database=master;app name=MyAppName`|
-|         | `server=localhost;user id=sa;database=master;app name=MyAppName`|
-|         | `odbc:server=localhost\\SQLExpress;user id=sa;database=master;app name=MyAppName` |
-|         | `odbc:server=localhost;user id=sa;database=master;app name=MyAppName` |
-| `hdb` (SAP HANA) |   `hdb://user:password@host:port` |
-| `clickhouse` (Yandex ClickHouse) |   `tcp://host1:9000?username=user&password=qwerty&database=clicks&read_timeout=10&write_timeout=20&alt_hosts=host2:9000,host3:9000` |
-
 
 REST vs RESP
 =============
@@ -213,6 +224,9 @@ Issue/Suggestion/Contribution ?
 ===============================
 `SQLer` is your software, feel free to open an issue with your feature(s), suggestions, ... etc, also you can easily contribute even you aren't a `Go` developer, you can write wikis it is open for all, let's make `SQLer` more powerful.
 
+Author
+=======
+> I'm Mohamed Al Ashaal, just a problem solver :), you can view more projects from me [here](https://github.com/alash3al), and here is my [email](mailto:m7medalash3al@gmail.com)
 
 License
 ========
