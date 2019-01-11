@@ -49,7 +49,7 @@ func NewManager(configpath string) (*Manager, error) {
 				if err != nil {
 					return nil, err
 				}
-				v.compiled = manager.compiled
+				v.manager = manager
 				v.name = k
 			}
 		}

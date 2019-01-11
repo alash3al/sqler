@@ -84,3 +84,32 @@ databases {
         })()
     JS
 }
+
+// list all tables from all databases
+tables {
+    exec = "SELECT `table_schema` as `database`, `table_name` as `table` FROM INFORMATION_SCHEMA.tables"
+    transformer = <<JS
+        (function(){
+            $ret = {}
+            for (  i in $result ) {
+                if ( ! $ret[$result[i].database] ) {
+                    $ret[$result[i].database] = [];
+                }
+                $ret[$result[i].database].push($result[i].table)
+            }
+            return $ret
+        })()
+    JS
+}
+
+databasesAndTables {
+    aggregate {
+        databases = "current_databases"
+        tables = "current_tables"
+    }
+
+    cache {
+        ttl = 3600
+        link = ["addUser"]
+    }
+}

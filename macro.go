@@ -8,7 +8,6 @@ import (
 	"io"
 	"io/ioutil"
 	"strings"
-	"text/template"
 
 	"github.com/dop251/goja"
 	"github.com/jmoiron/sqlx"
@@ -20,9 +19,10 @@ type Macro struct {
 	Methods     []string            `json:"method"`
 	Rules       map[string][]string `json:"rules"`
 	Exec        string              `json:"exec"`
+	Aggregate   map[string]string   `json:"aggregate"`
 	Transformer string              `json:"transformer"`
 	name        string
-	compiled    *template.Template
+	manager     *Manager
 }
 
 // Call - executes the macro
@@ -34,6 +34,10 @@ func (m *Macro) Call(input map[string]interface{}) (interface{}, error) {
 	errs := Validate(input, m.Rules)
 	if len(errs) > 0 {
 		return errs, errors.New("validation errors")
+	}
+
+	if len(m.Aggregate) > 0 {
+		return m.aggregate(ctx)
 	}
 
 	src, err := m.compileMacro(ctx)
@@ -51,14 +55,14 @@ func (m *Macro) Call(input map[string]interface{}) (interface{}, error) {
 
 // compileMacro - compile the specified macro and pass the specified ctx
 func (m *Macro) compileMacro(ctx *Context) (string, error) {
-	if m.compiled.Lookup(m.name) == nil {
+	if m.manager.compiled.Lookup(m.name) == nil {
 		return "resource not found", errors.New("resource not found")
 	}
 
 	var buf bytes.Buffer
 
 	rw := io.ReadWriter(&buf)
-	if err := m.compiled.ExecuteTemplate(rw, m.name, ctx); err != nil {
+	if err := m.manager.compiled.ExecuteTemplate(rw, m.name, ctx); err != nil {
 		return "", err
 	}
 
@@ -157,4 +161,22 @@ func (m *Macro) execTransformer(data interface{}, transformer string) (interface
 	}
 
 	return v, nil
+}
+
+// aggregate - run the aggregators
+func (m *Macro) aggregate(ctx *Context) (map[string]interface{}, error) {
+	ret := map[string]interface{}{}
+	for k, v := range m.Aggregate {
+		macro := m.manager.Get(k)
+		if nil == macro {
+			err := fmt.Errorf("unknown macro %s", k)
+			return nil, err
+		}
+		out, err := macro.Call(ctx.Input)
+		if err != nil {
+			return nil, err
+		}
+		ret[v] = out
+	}
+	return ret, nil
 }
