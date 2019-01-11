@@ -209,6 +209,11 @@ databases {
 }
 ```
 
+Issue/Suggestion/Contribution ?
+===============================
+`SQLer` is your software, feel free to open an issue with your feature(s), suggestions, ... etc, also you can easily contribute even you aren't a `Go` developer, you can write wikis it is open for all, let's make `SQLer` more powerful.
+
+
 License
 ========
 > Copyright 2019 The SQLer Authors. All rights reserved.
