@@ -59,4 +59,14 @@ func init() {
 			os.Exit(0)
 		}
 	}
+
+	if *flagREDISAddr != "" {
+		var err error
+
+		cacher, err = NewCacher(*flagREDISAddr)
+		if err != nil {
+			fmt.Println(color.RedString("redis - (%s)", err.Error()))
+			os.Exit(0)
+		}
+	}
 }

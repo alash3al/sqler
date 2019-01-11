@@ -14,6 +14,7 @@ Table Of Contents
 - [Supported Utils](#supported-utils)
 - [REST vs RESP](#rest-vs-resp)
 - [Data Transformation](#data-transformation)
+- [Aggregators](#aggregators)
 - [Issue/Suggestion/Contribution ?](#issuesuggestioncontribution)
 - [Author](#author)
 - [License](#license)
@@ -228,6 +229,53 @@ databases {
             return newResult
         })()
     JS
+}
+```
+
+Aggregators
+============
+> `SQLer` helps you to merge multiple macros into one to minimize the API calls number, see the example bellow
+
+```hcl
+databases {
+    exec = "SHOW DATABASES"
+
+    transformer = <<JS
+        // there is a global variable called `$result`,
+        // `$result` holds the result of the sql execution.
+        (function(){
+            newResult = []
+
+            for ( i in $result ) {
+                newResult.push($result[i].Database)
+            }
+
+            return newResult
+        })()
+    JS
+}
+
+tables {
+    exec = "SELECT `table_schema` as `database`, `table_name` as `table` FROM INFORMATION_SCHEMA.tables"
+    transformer = <<JS
+        (function(){
+            $ret = {}
+            for (  i in $result ) {
+                if ( ! $ret[$result[i].database] ) {
+                    $ret[$result[i].database] = [];
+                }
+                $ret[$result[i].database].push($result[i].table)
+            }
+            return $ret
+        })()
+    JS
+}
+
+databasesAndTables {
+    aggregate {
+        databases = "current_databases"
+        tables = "current_tables"
+    }
 }
 ```
 

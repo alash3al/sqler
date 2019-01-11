@@ -102,6 +102,7 @@ tables {
     JS
 }
 
+// a mcro that aggregates `databases` macro and `tables` macro into one macro
 databasesAndTables {
     aggregate {
         databases = "current_databases"
@@ -109,7 +110,8 @@ databasesAndTables {
     }
 
     cache {
-        ttl = 3600
-        link = ["addUser"]
+        ttl = 100
+        link = ["adduser"]
+        ignoreInput = true
     }
 }

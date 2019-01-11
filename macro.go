@@ -2,12 +2,15 @@ package main
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"strings"
+
+	"github.com/vmihailenco/msgpack"
 
 	"github.com/dop251/goja"
 	"github.com/jmoiron/sqlx"
@@ -21,12 +24,30 @@ type Macro struct {
 	Exec        string              `json:"exec"`
 	Aggregate   map[string]string   `json:"aggregate"`
 	Transformer string              `json:"transformer"`
-	name        string
-	manager     *Manager
+	Cache       struct {
+		TTL         int64    `json:"ttl"`
+		Link        []string `json:"link"`
+		IgnoreInput bool     `json:"ignore_input"`
+	} `json:"cache"`
+	name    string
+	manager *Manager
 }
 
 // Call - executes the macro
 func (m *Macro) Call(input map[string]interface{}) (interface{}, error) {
+	cacheKey := m.name
+	if !m.Cache.IgnoreInput && len(input) > 0 {
+		cacheKey += ":" + m.encodeInput(input)
+	}
+
+	go cacher.ClearTagged(m.name)
+
+	if m.Cache.TTL > 0 {
+		if cachedValue := cacher.Get(cacheKey); cachedValue != nil {
+			return cachedValue, nil
+		}
+	}
+
 	ctx := NewContext()
 	ctx.SQLArgs = make(map[string]interface{})
 	ctx.Input = input
@@ -36,21 +57,36 @@ func (m *Macro) Call(input map[string]interface{}) (interface{}, error) {
 		return errs, errors.New("validation errors")
 	}
 
+	var out interface{}
+	var err error
+
 	if len(m.Aggregate) > 0 {
-		return m.aggregate(ctx)
+		out, err = m.aggregate(ctx)
+		if err != nil {
+			return err.Error(), err
+		}
+	} else {
+		src, err := m.compileMacro(ctx)
+		if err != nil {
+			return err.Error(), err
+		}
+
+		out, err = m.execSQLQuery(strings.Split(src, ";"), ctx.SQLArgs)
+		if err != nil {
+			return err.Error(), err
+		}
+
+		out, err = m.execTransformer(out, m.Transformer)
+		if err != nil {
+			return err.Error(), err
+		}
 	}
 
-	src, err := m.compileMacro(ctx)
-	if err != nil {
-		return err.Error(), err
+	if m.Cache.TTL > 0 {
+		cacher.Put(cacheKey, out, m.Cache.TTL, m.Cache.Link)
 	}
 
-	out, err := m.execSQLQuery(strings.Split(src, ";"), ctx.SQLArgs)
-	if err != nil {
-		return err.Error(), err
-	}
-
-	return m.execTransformer(out, m.Transformer)
+	return out, nil
 }
 
 // compileMacro - compile the specified macro and pass the specified ctx
@@ -92,7 +128,6 @@ func (m *Macro) execSQLQuery(sqls []string, args map[string]interface{}) (interf
 			continue
 		}
 		if _, err := conn.NamedExec(sql, args); err != nil {
-			fmt.Println("....")
 			return nil, err
 		}
 	}
@@ -148,9 +183,10 @@ func (m *Macro) scanSQLRow(rows *sqlx.Rows) (map[string]interface{}, error) {
 
 // execTransformer - run the transformer function
 func (m *Macro) execTransformer(data interface{}, transformer string) (interface{}, error) {
-	if transformer == "" {
+	if strings.TrimSpace(transformer) == "" {
 		return data, nil
 	}
+
 	vm := goja.New()
 
 	vm.Set("$result", data)
@@ -160,7 +196,7 @@ func (m *Macro) execTransformer(data interface{}, transformer string) (interface
 		return nil, err
 	}
 
-	return v, nil
+	return v.Export(), nil
 }
 
 // aggregate - run the aggregators
@@ -179,4 +215,10 @@ func (m *Macro) aggregate(ctx *Context) (map[string]interface{}, error) {
 		ret[v] = out
 	}
 	return ret, nil
+}
+
+// encodeInput - encode the input as a string
+func (m *Macro) encodeInput(in map[string]interface{}) string {
+	k, _ := msgpack.Marshal(in)
+	return hex.EncodeToString(k)
 }
