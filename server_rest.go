@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/go-resty/resty"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	"gopkg.in/resty.v1"
 )
 
 // initialize RESTful server
