@@ -2,7 +2,7 @@ module github.com/alash3al/sqler
 
 require (
 	cloud.google.com/go v0.34.0 // indirect
-	github.com/SAP/go-hdb v0.13.1
+	github.com/SAP/go-hdb v0.13.2
 	github.com/alash3al/go-color v1.7.0
 	github.com/asaskevich/govalidator v0.0.0-20180720115003-f9ffefc3facf
 	github.com/bwmarrin/snowflake v0.0.0-20180412010544-68117e6bbede
@@ -24,6 +24,7 @@ require (
 	github.com/tidwall/redcon v0.9.0
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v0.0.0-20170224212429-dcecefd839c4 // indirect
+	github.com/vmihailenco/msgpack v4.0.1+incompatible
 	golang.org/x/crypto v0.0.0-20190103213133-ff983b9c42bc
 	golang.org/x/net v0.0.0-20190110200230-915654e7eabc // indirect
 	golang.org/x/text v0.3.0 // indirect

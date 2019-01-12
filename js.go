@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/dop251/goja"
-	"github.com/go-resty/resty"
+	"gopkg.in/resty.v1"
 )
 
 // initJSVM - creates a new javascript virtual machine
