@@ -1,6 +1,6 @@
 SQLer
 =====
-> `SQL-er` is a tiny portable server enables you to write APIs using SQL query to be executed when anyone hits it, also it enables you to define validation rules so you can validate the request body/query params, as well as data transformation using simple `javascript` syntax. `sqler` uses `nginx` style configuration language ([`HCL`](https://github.com/hashicorp/hcl)) amd `Go` [`text/template`](https://golang.org/pkg/text/template).
+> `SQL-er` is a tiny portable server enables you to write APIs using SQL query to be executed when anyone hits it, also it enables you to define validation rules so you can validate the request body/query params, as well as data transformation using simple `javascript` syntax. `sqler` uses `nginx` style configuration language ([`HCL`](https://github.com/hashicorp/hcl)) amd `javascript` engine for custom expressions.
 
 Table Of Contents
 =================
@@ -32,7 +32,7 @@ Features
 - Uses ([`HCL`](https://github.com/hashicorp/hcl)) configuration language
 - You can load multiple configuration files not just one, based on `unix glob` style pattern
 - Each `SQL` query could be named as `Macro`
-- You can use `Go` [`text/template`](https://golang.org/pkg/text/template/) within each macro
+- Uses `Javascript` custom expressions.
 - Each macro has its own `Context` (`query params` + `body params`) as `.Input` which is `map[string]interface{}`, and `.Utils` which is a list of helper functions, currently it contains only `SQLEscape`.
 - You can define `authorizers`, an `authorizer` is just a simple webhook that enables `sqler` to verify whether the request should be done or not.
 
