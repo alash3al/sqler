@@ -1,126 +1,93 @@
 package main
 
 import (
-	"bytes"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"strings"
 
 	"github.com/vmihailenco/msgpack"
 
-	"github.com/dop251/goja"
 	"github.com/jmoiron/sqlx"
 )
 
 // Macro - a macro configuration
 type Macro struct {
-	Authorizers []string            `json:"authorizers"`
-	Methods     []string            `json:"method"`
-	Rules       map[string][]string `json:"rules"`
-	Exec        string              `json:"exec"`
-	Aggregate   map[string]string   `json:"aggregate"`
-	Transformer string              `json:"transformer"`
-	Cache       struct {
-		TTL         int64    `json:"ttl"`
-		Link        []string `json:"link"`
-		IgnoreInput bool     `json:"ignore_input"`
-	} `json:"cache"`
+	Methods     []string
+	Include     []string
+	Validators  map[string]string
+	Authorizer  string
+	Bind        map[string]string
+	Exec        string
+	Aggregate   []string
+	Transformer string
+
 	name    string
 	manager *Manager
 }
 
 // Call - executes the macro
 func (m *Macro) Call(input map[string]interface{}) (interface{}, error) {
-	cacheKey := m.name
-	if !m.Cache.IgnoreInput && len(input) > 0 {
-		cacheKey += ":" + m.encodeInput(input)
+	ok, err := m.execAuthorizer(input)
+	if err != nil {
+		return err.Error(), err
 	}
 
-	go cacher.ClearTagged(m.name)
-
-	if m.Cache.TTL > 0 {
-		if cachedValue := cacher.Get(cacheKey); cachedValue != nil {
-			return cachedValue, nil
-		}
+	if !ok {
+		return errAuthorizationError.Error(), errAuthorizationError
 	}
 
-	ctx := NewContext()
-	ctx.SQLArgs = make(map[string]interface{})
-	ctx.Input = input
+	invalid, err := m.validate(input)
+	if err != nil {
+		return err.Error(), err
+	} else if len(invalid) > 0 {
+		return invalid, errValidationError
+	}
 
-	errs := Validate(input, m.Rules)
-	if len(errs) > 0 {
-		return errs, errors.New("validation errors")
+	if err := m.runIncludes(input); err != nil {
+		return err.Error(), err
 	}
 
 	var out interface{}
-	var err error
 
 	if len(m.Aggregate) > 0 {
-		out, err = m.aggregate(ctx)
+		out, err = m.aggregate(input)
 		if err != nil {
 			return err.Error(), err
 		}
 	} else {
-		src, err := m.compileMacro(ctx)
-		if err != nil {
-			return err.Error(), err
-		}
-
-		out, err = m.execSQLQuery(strings.Split(src, ";"), ctx.SQLArgs)
-		if err != nil {
-			return err.Error(), err
-		}
-
-		out, err = m.execTransformer(out, m.Transformer)
+		out, err = m.execSQLQuery(strings.Split(strings.TrimSpace(m.Exec), ";"), input)
 		if err != nil {
 			return err.Error(), err
 		}
 	}
 
-	if m.Cache.TTL > 0 {
-		cacher.Put(cacheKey, out, m.Cache.TTL, m.Cache.Link)
+	out, err = m.execTransformer(out)
+	if err != nil {
+		return err.Error(), err
 	}
 
 	return out, nil
 }
 
-// compileMacro - compile the specified macro and pass the specified ctx
-func (m *Macro) compileMacro(ctx *Context) (string, error) {
-	if m.manager.compiled.Lookup(m.name) == nil {
-		return "resource not found", errors.New("resource not found")
-	}
-
-	var buf bytes.Buffer
-
-	rw := io.ReadWriter(&buf)
-	if err := m.manager.compiled.ExecuteTemplate(rw, m.name, ctx); err != nil {
-		return "", err
-	}
-
-	src, err := ioutil.ReadAll(rw)
-	if err != nil {
-		return "", err
-	}
-
-	if len(src) < 1 {
-		return "", errors.New("empty resource")
-	}
-
-	return strings.Trim(strings.TrimSpace(string(src)), ";"), nil
-}
-
 // execSQLQuery - execute the specified sql query
-func (m *Macro) execSQLQuery(sqls []string, args map[string]interface{}) (interface{}, error) {
+func (m *Macro) execSQLQuery(sqls []string, input map[string]interface{}) (interface{}, error) {
+	args, err := m.buildBind(input)
+	if err != nil {
+		return nil, err
+	}
+
 	conn, err := sqlx.Open(*flagDBDriver, *flagDBDSN)
 	if err != nil {
 		return nil, err
 	}
 	defer conn.Close()
+
+	for i, sql := range sqls {
+		if strings.TrimSpace(sql) == "" {
+			sqls = append(sqls[0:i], sqls[i+1:]...)
+		}
+	}
 
 	for _, sql := range sqls[0 : len(sqls)-1] {
 		sql = strings.TrimSpace(sql)
@@ -182,14 +149,13 @@ func (m *Macro) scanSQLRow(rows *sqlx.Rows) (map[string]interface{}, error) {
 }
 
 // execTransformer - run the transformer function
-func (m *Macro) execTransformer(data interface{}, transformer string) (interface{}, error) {
-	if strings.TrimSpace(transformer) == "" {
+func (m *Macro) execTransformer(data interface{}) (interface{}, error) {
+	transformer := strings.TrimSpace(m.Transformer)
+	if transformer == "" {
 		return data, nil
 	}
 
-	vm := goja.New()
-
-	vm.Set("$result", data)
+	vm := initJSVM(map[string]interface{}{"$result": data})
 
 	v, err := vm.RunString(transformer)
 	if err != nil {
@@ -199,20 +165,43 @@ func (m *Macro) execTransformer(data interface{}, transformer string) (interface
 	return v.Export(), nil
 }
 
+// execAuthorizer - run the authorizer function
+func (m *Macro) execAuthorizer(input map[string]interface{}) (bool, error) {
+	authorizer := strings.TrimSpace(m.Authorizer)
+	if authorizer == "" {
+		return true, nil
+	}
+
+	var execError error
+
+	vm := initJSVM(map[string]interface{}{"$input": input})
+
+	val, err := vm.RunString(m.Authorizer)
+	if err != nil {
+		return false, err
+	}
+
+	if execError != nil {
+		return false, execError
+	}
+
+	return val.ToBoolean(), nil
+}
+
 // aggregate - run the aggregators
-func (m *Macro) aggregate(ctx *Context) (map[string]interface{}, error) {
+func (m *Macro) aggregate(input map[string]interface{}) (map[string]interface{}, error) {
 	ret := map[string]interface{}{}
-	for k, v := range m.Aggregate {
+	for _, k := range m.Aggregate {
 		macro := m.manager.Get(k)
 		if nil == macro {
 			err := fmt.Errorf("unknown macro %s", k)
 			return nil, err
 		}
-		out, err := macro.Call(ctx.Input)
+		out, err := macro.Call(input)
 		if err != nil {
 			return nil, err
 		}
-		ret[v] = out
+		ret[k] = out
 	}
 	return ret, nil
 }
@@ -221,4 +210,54 @@ func (m *Macro) aggregate(ctx *Context) (map[string]interface{}, error) {
 func (m *Macro) encodeInput(in map[string]interface{}) string {
 	k, _ := msgpack.Marshal(in)
 	return hex.EncodeToString(k)
+}
+
+// validate - validate the input aginst the rules
+func (m *Macro) validate(input map[string]interface{}) (ret []string, err error) {
+	vm := initJSVM(map[string]interface{}{"$input": input})
+
+	for k, src := range m.Validators {
+		val, err := vm.RunString(src)
+		if err != nil {
+			return nil, err
+		}
+
+		if !val.ToBoolean() {
+			ret = append(ret, k)
+		}
+	}
+
+	return ret, err
+}
+
+// buildBind - build the bind vars
+func (m *Macro) buildBind(input map[string]interface{}) (map[string]interface{}, error) {
+	vm := initJSVM(map[string]interface{}{"$input": input})
+	ret := map[string]interface{}{}
+
+	for k, src := range m.Bind {
+		val, err := vm.RunString(src)
+		if err != nil {
+			return nil, err
+		}
+
+		ret[k] = val.Export()
+	}
+
+	return ret, nil
+}
+
+// runIncludes - run the include function
+func (m *Macro) runIncludes(input map[string]interface{}) error {
+	for _, name := range m.Include {
+		macro := m.manager.Get(name)
+		if nil == macro {
+			return fmt.Errorf("macro %s not found", name)
+		}
+		_, err := macro.Call(input)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

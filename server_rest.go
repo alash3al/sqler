@@ -4,12 +4,10 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-	"gopkg.in/resty.v1"
 )
 
 // initialize RESTful server
@@ -67,30 +65,30 @@ func middlewareAuthorize(next echo.HandlerFunc) echo.HandlerFunc {
 			})
 		}
 
-		for _, endpoint := range macro.Authorizers {
-			parts := strings.SplitN(endpoint, " ", 2)
-			if len(parts) < 2 {
-				return c.JSON(500, map[string]interface{}{
-					"success": false,
-					"error":   fmt.Sprintf("authorizer: %s is invalid", endpoint),
-				})
-			}
-			resp, err := resty.R().SetHeaders(map[string]string{
-				"Authorization": c.Request().Header.Get("Authorization"),
-			}).Execute(parts[0], parts[1])
-			if err != nil {
-				return c.JSON(500, map[string]interface{}{
-					"success": false,
-					"error":   err.Error(),
-				})
-			}
-			if resp.StatusCode() >= 400 {
-				return c.JSON(resp.StatusCode(), map[string]interface{}{
-					"success": false,
-					"error":   resp.Status(),
-				})
-			}
-		}
+		// for _, endpoint := range macro.Authorizers {
+		// 	parts := strings.SplitN(endpoint, " ", 2)
+		// 	if len(parts) < 2 {
+		// 		return c.JSON(500, map[string]interface{}{
+		// 			"success": false,
+		// 			"error":   fmt.Sprintf("authorizer: %s is invalid", endpoint),
+		// 		})
+		// 	}
+		// 	resp, err := resty.R().SetHeaders(map[string]string{
+		// 		"Authorization": c.Request().Header.Get("Authorization"),
+		// 	}).Execute(parts[0], parts[1])
+		// 	if err != nil {
+		// 		return c.JSON(500, map[string]interface{}{
+		// 			"success": false,
+		// 			"error":   err.Error(),
+		// 		})
+		// 	}
+		// 	if resp.StatusCode() >= 400 {
+		// 		return c.JSON(resp.StatusCode(), map[string]interface{}{
+		// 			"success": false,
+		// 			"error":   resp.Status(),
+		// 		})
+		// 	}
+		// }
 
 		c.Set("macro", macro)
 

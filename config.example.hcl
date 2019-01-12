@@ -18,50 +18,41 @@ _boot {
 // a `?user_name=&user_email=` or json `POST` request
 // with the same fields.
 adduser {
-    // what request method will this macro be called
-    // default: ["ANY"]
-    methods = ["POST"]
-
-    // authorizers,
-    // sqler will attempt to send the incoming authorization header
-    // to the provided endpoint(s) as `Authorization`,
-    // each endpoint MUST return `200 OK` so sqler can continue, other wise,
-    // sqler will break the request and return back the client with the error occured.
-    // each authorizer has a method and a url, if you ignored the method
-    // it will be automatically set to `GET`.
-    authorizers = ["GET http://requestbin.fullcontact.com/wxu5opwx"]
-
-    // the validation rules
-    // you can specifiy seprated rules for each request method!
-    rules {
-        user_name = ["required"]
-        user_email =  ["required", "email"]
-        user_password = ["required", "stringlength: 5,50"]
+    validators {
+        user_name_is_empty = "$input.user_name && $input.user_name.trim().length > 0"
+        user_email_is_empty = "$input.user_email && $input.user_email.trim(' ').length > 0"
+        user_password_is_not_ok = "$input.user_password && $input.user_password.trim(' ').length > 5"
     }
 
-    // the query to be executed
+    bind {
+        name = "$input.user_name"
+        email = "$input.user_email"
+        password = "$input.user_password"
+    }
+
+    methods = ["POST"]
+
+    authorizer = <<JS
+        (function(){
+            log("use this for debugging")
+            token = $input.http_authorization
+            response = fetch("http://requestbin.fullcontact.com/zxpjigzx", {
+                headers: {
+                    "Authorization": token
+                }
+            })
+            if ( response.statusCode != 200 ) {
+                return false
+            }
+            return true
+        })()
+    JS
+
+    // include some macros we declared before
+    include = ["_boot"]
+
     exec = <<SQL
-        {{ template "_boot" }}
-
-        /* let's bind a vars to be used within our internal prepared statment */
-        {{ .BindVar "name" .Input.user_name }}
-        {{ .BindVar "email" .Input.user_email }}
-        {{ .BindVar "emailx" .Input.user_email }}
-
-        INSERT INTO users(name, email, password, time) VALUES(
-            /* we added it above */
-            :name,
-
-            /* we added it above */
-            :email,
-
-            /* it will be secured anyway because it is encoded */
-            '{{ .Input.user_password | .Hash "bcrypt" }}',
-
-            /* generate a unix timestamp "seconds" */
-            {{ .UnixTime }}
-        );
-
+        INSERT INTO users(name, email, password, time) VALUES(:name, :email, :password, UNIX_TIMESTAMP());
         SELECT * FROM users WHERE id = LAST_INSERT_ID();
     SQL
 }
@@ -69,49 +60,14 @@ adduser {
 // list all databases, and run a transformer function
 databases {
     exec = "SHOW DATABASES"
-
-    transformer = <<JS
-        // there is a global variable called `$result`,
-        // `$result` holds the result of the sql execution.
-        (function(){
-            newResult = []
-
-            for ( i in $result ) {
-                newResult.push($result[i].Database)
-            }
-
-            return newResult
-        })()
-    JS
 }
 
 // list all tables from all databases
 tables {
     exec = "SELECT `table_schema` as `database`, `table_name` as `table` FROM INFORMATION_SCHEMA.tables"
-    transformer = <<JS
-        (function(){
-            $ret = {}
-            for (  i in $result ) {
-                if ( ! $ret[$result[i].database] ) {
-                    $ret[$result[i].database] = [];
-                }
-                $ret[$result[i].database].push($result[i].table)
-            }
-            return $ret
-        })()
-    JS
 }
 
-// a mcro that aggregates `databases` macro and `tables` macro into one macro
-databasesAndTables {
-    aggregate {
-        databases = "current_databases"
-        tables = "current_tables"
-    }
-
-    cache {
-        ttl = 100
-        link = ["adduser"]
-        ignoreInput = true
-    }
+// a macro that aggregates `databases` macro and `tables` macro into one macro
+databases_tables {
+    aggregate = ["databases", "tables"]
 }

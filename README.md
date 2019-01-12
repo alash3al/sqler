@@ -10,9 +10,10 @@ Table Of Contents
 - [Quick Tour](#quick-tour)
 - [Supprted DBMSs](#supprted-dbmss)
 - [Configuration Overview](#configuration-overview)
-- [Supported Validation Rules](#supported-validation-rules)
-- [Supported Utils](#supported-utils)
 - [REST vs RESP](#rest-vs-resp)
+- [Sanitization](#sanitization)
+- [Validation](#validation)
+- [Authorization](#authorization)
 - [Data Transformation](#data-transformation)
 - [Aggregators](#aggregators)
 - [Issue/Suggestion/Contribution ?](#issuesuggestioncontribution)
@@ -98,7 +99,6 @@ Configuration Overview
 // create a macro/endpoint called "_boot",
 // this macro is private "used within other macros" 
 // because it starts with "_".
-// this rule only used within `RESTful` context.
 _boot {
     // the query we want to execute
     exec = <<SQL
@@ -116,51 +116,41 @@ _boot {
 // a `?user_name=&user_email=` or json `POST` request
 // with the same fields.
 adduser {
-    // what request method will this macro be called
-    // default: ["ANY"]
-    // this only used within `RESTful` context.
-    methods = ["POST"]
-
-    // authorizers,
-    // sqler will attempt to send the incoming authorization header
-    // to the provided endpoint(s) as `Authorization`,
-    // each endpoint MUST return `200 OK` so sqler can continue, other wise,
-    // sqler will break the request and return back the client with the error occurred.
-    // each authorizer has a method and a url.
-    // this only used within `RESTful` context.
-    authorizers = ["GET http://web.hook/api/authorize", "GET http://web.hook/api/allowed?roles=admin,root,super_admin"]
-
-    // the validation rules
-    // you can specify separated rules for each request method!
-    rules {
-        user_name = ["required"]
-        user_email =  ["required", "email"]
-        user_password = ["required", "stringlength: 5,50"]
+    validators {
+        user_name_is_empty = "$input.user_name && $input.user_name.trim().length > 0"
+        user_email_is_empty = "$input.user_email && $input.user_email.trim(' ').length > 0"
+        user_password_is_not_ok = "$input.user_password && $input.user_password.trim(' ').length > 5"
     }
 
-    // the query to be executed
+    bind {
+        name = "$input.user_name"
+        email = "$input.user_email"
+        password = "$input.user_password"
+    }
+
+    methods = ["POST"]
+
+    authorizer = <<JS
+        (function(){
+            log("use this for debugging")
+            token = $input.http_authorization
+            response = fetch("http://requestbin.fullcontact.com/zxpjigzx", {
+                headers: {
+                    "Authorization": token
+                }
+            })
+            if ( response.statusCode != 200 ) {
+                return false
+            }
+            return true
+        })()
+    JS
+
+    // include some macros we declared before
+    include = ["_boot"]
+
     exec = <<SQL
-       {{ template "_boot" }}
-
-        /* let's bind a vars to be used within our internal prepared statement */
-        {{ .BindVar "name" .Input.user_name }}
-        {{ .BindVar "email" .Input.user_email }}
-        {{ .BindVar "emailx" .Input.user_email }}
-
-        INSERT INTO users(name, email, password, time) VALUES(
-            /* we added it above */
-            :name,
-
-            /* we added it above */
-            :email,
-
-            /* it will be secured anyway because it is encoded */
-            '{{ .Input.user_password | .Hash "bcrypt" }}',
-
-            /* generate a unix timestamp "seconds" */
-            {{ .UnixTime }}
-        );
-
+        INSERT INTO users(name, email, password, time) VALUES(:name, :email, :password, UNIX_TIMESTAMP());
         SELECT * FROM users WHERE id = LAST_INSERT_ID();
     SQL
 }
@@ -168,37 +158,19 @@ adduser {
 // list all databases, and run a transformer function
 databases {
     exec = "SHOW DATABASES"
+}
 
-    transformer = <<JS
-        // there is a global variable called `$result`,
-        // `$result` holds the result of the sql execution.
-        (function(){
-            newResult = []
+// list all tables from all databases
+tables {
+    exec = "SELECT `table_schema` as `database`, `table_name` as `table` FROM INFORMATION_SCHEMA.tables"
+}
 
-            for ( i in $result ) {
-                newResult.push($result[i].Database)
-            }
-
-            return newResult
-        })()
-    JS
+// a macro that aggregates `databases` macro and `tables` macro into one macro
+databases_tables {
+    aggregate = ["databases", "tables"]
 }
 
 ```
-
-
-Supported Validation Rules
-==========================
-- Simple Validations methods with no args: [here](https://godoc.org/github.com/asaskevich/govalidator#TagMap)
-- Advanced Validations methods with args: [here](https://godoc.org/github.com/asaskevich/govalidator#ParamTagMap) 
-
-Supported Utils
-===============
-- `.Hash <method>` - hash the specified input using the specified method [md5, sha1, sha256, sha512, bcrypt], `{{ "data" | .Hash "md5" }}`
-- `.UnixTime` - returns the unix time in seconds, `{{ .UnixTime }}`
-- `.UnixNanoTime` - returns the unix time in nanoseconds, `{{ .UnixNanoTime }}`
-- `.Uniqid` - returns a unique id, `{{ .Uniqid }}`
-
 
 REST vs RESP
 =============
@@ -206,6 +178,92 @@ REST vs RESP
 > Each macro you add to the configuration file(s) you can access to it by issuing a http request to `/<macro-name>`, every query param and json body will be passed to the macro `.Input`.
 
 > RESP server is just a basic `REDIS` compatible server, you connect to it using any `REDIS` client out there, even `redis-cli`, just open `redis-cli -p 3678 list` to list all available macros (`commands`), you can execute any macro as a redis command and pass the arguments as a json encoded data, i.e `redis-cli -p 3678 adduser "{\"user_name\": \"u6\", \"user_email\": \"email@tld.com\", \"user_password\":\"pass@123\"}"`.
+
+Sanitization
+=============
+> `SQLer` uses prepared statements, you can bind use inputs like the following:
+
+
+```hcl
+addpost {
+    // $input is a global variable holds all request inputs,
+    // including the http headers too (prefixed with `http_`)
+    // all http header keys are normalized to be in this form 
+    // `http_x_header_example`, `http_authorization` ... etc in lower case.
+    bind {
+        title = "$input.post_title"
+        content = "$input.post_content"
+        user_id = "$input.post_user"
+    }
+
+    exec = <<SQL
+        INSERT INTO posts(user_id, title, content) VALUES(:user_id, :title, :content);
+        SELECT * FROM posts WHERE id = LAST_INSERT_ID();
+    SQL
+}
+```
+
+
+Validation
+===========
+> Data validation is very easy in `SQLer`, it is all about simple `javascript` expression like this:
+
+```hcl
+addpost {
+    // if any rule returns false, 
+    // SQLer will return 422 code, with invalid rules.
+    // 
+    // $input is a global variable holds all request inputs,
+    // including the http headers too (prefixed with `http_`)
+    // all http header keys are normalized to be in this form 
+    // `http_x_header_example`, `http_authorization` ... etc in lower case.
+    validators {
+        post_title_length = "$input.post_title && $input.post_title.trim().length > 0"
+        post_content_length = "$input.post_content && $input.post_content.length > 0"
+        post_user = "$input.post_user"
+    }
+
+    bind {
+        title = "$input.post_title"
+        content = "$input.post_content"
+        user_id = "$input.post_user"
+    }
+
+    exec = <<SQL
+        INSERT INTO posts(user_id, title, content) VALUES(:user_id, :title, :content);
+        SELECT * FROM posts WHERE id = LAST_INSERT_ID();
+    SQL
+}
+```
+
+Authorization
+=============
+> If you want to expose `SQLer` as a direct api to API consumers, you will need to add an authorization layer on top of it, let's see how to do that
+
+```hcl
+addpost {
+    authorizer = <<JS
+        (function(){
+            // $input is a global variable holds all request inputs,
+            // including the http headers too (prefixed with `http_`)
+            // all http header keys are normalized to be in this form 
+            // `http_x_header_example`, `http_authorization` ... etc in lower case.
+            token = $input.http_authorization
+            response = fetch("http://requestbin.fullcontact.com/zxpjigzx", {
+                headers: {
+                    "Authorization": token
+                }
+            })
+            if ( response.statusCode != 200 ) {
+                return false
+            }
+            return true
+        })()
+    JS
+}
+```
+
+> using that trick, you can use any third-party Authentication service that will remove that hassle from your code.
 
 Data Transformation
 ====================

@@ -4,10 +4,9 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"runtime"
-
-	"github.com/bwmarrin/snowflake"
 )
 
 var (
@@ -16,14 +15,25 @@ var (
 	flagAPIFile        = flag.String("config", "./config.example.hcl", "the config file(s) that contains your endpoints configs, it accepts comma seprated list of glob style pattern")
 	flagRESTListenAddr = flag.String("rest", ":8025", "the http restful api listen address")
 	flagRESPListenAddr = flag.String("resp", ":3678", "the resp (redis protocol) server listen address")
-	flagREDISAddr      = flag.String("redis", "redis://localhost:6379/1", "redis server address, used for caching purposes")
 	flagWorkers        = flag.Int("workers", runtime.NumCPU(), "the maximum workers count")
 )
 
 var (
+	errNoMacroFound       = errors.New("Resource not found")
+	errValidationError    = errors.New("Validation error")
+	errAuthorizationError = errors.New("Authorization Error")
+)
+
+var (
+	errStatusCodeMap = map[error]int{
+		errNoMacroFound:       404,
+		errValidationError:    422,
+		errAuthorizationError: 401,
+	}
+)
+
+var (
 	macrosManager *Manager
-	snow          *snowflake.Node
-	cacher        *Cacher
 )
 
 const (

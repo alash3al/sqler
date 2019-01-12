@@ -4,6 +4,8 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/labstack/echo"
 )
 
@@ -31,11 +33,21 @@ func routeExecMacro(c echo.Context) error {
 		input[k] = v
 	}
 
+	headers := c.Request().Header
+	for k, v := range headers {
+		input["http_"+strings.Replace(strings.ToLower(k), "-", "_", -1)] = v[0]
+	}
+
 	out, err := macro.Call(input)
 	if err != nil {
-		return c.JSON(500, map[string]interface{}{
+		code := errStatusCodeMap[err]
+		if code < 1 {
+			code = 500
+		}
+		return c.JSON(code, map[string]interface{}{
 			"success": false,
 			"error":   err.Error(),
+			"data":    out,
 		})
 	}
 

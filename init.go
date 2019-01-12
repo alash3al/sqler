@@ -9,8 +9,6 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/bwmarrin/snowflake"
-
 	_ "github.com/SAP/go-hdb/driver"
 	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/go-sql-driver/mysql"
@@ -48,25 +46,5 @@ func init() {
 			os.Exit(0)
 		}
 		macrosManager = manager
-	}
-
-	{
-		var err error
-
-		snow, err = snowflake.NewNode(1)
-		if err != nil {
-			fmt.Println(color.RedString("(%s)", err.Error()))
-			os.Exit(0)
-		}
-	}
-
-	if *flagREDISAddr != "" {
-		var err error
-
-		cacher, err = NewCacher(*flagREDISAddr)
-		if err != nil {
-			fmt.Println(color.RedString("redis - (%s)", err.Error()))
-			os.Exit(0)
-		}
 	}
 }
