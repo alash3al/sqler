@@ -84,7 +84,7 @@ Quick Tour
 | `clickhouse` (Yandex ClickHouse) |   `tcp://host1:9000?username=user&password=qwerty&database=clicks&read_timeout=10&write_timeout=20&alt_hosts=host2:9000,host3:9000` |
 
 
-Supprted DBMSs
+Supported DBMSs
 ===============
 - `MYSQL`, `TiDB`, `MariaDB`, `Percona` and any MYSQL compatible server uses `mysql` driver.
 - `PostgreSQL`, `CockroachDB` and any PostgreSQL compatible server uses `postgres` driver.
