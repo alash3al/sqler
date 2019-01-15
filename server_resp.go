@@ -53,6 +53,7 @@ func initRESPServer() error {
 				for _, v := range macrosManager.List() {
 					conn.WriteBulkString(v)
 				}
+				return
 			}
 
 			// close the connection
