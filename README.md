@@ -84,7 +84,7 @@ Quick Tour
 | `clickhouse` (Yandex ClickHouse) |   `tcp://host1:9000?username=user&password=qwerty&database=clicks&read_timeout=10&write_timeout=20&alt_hosts=host2:9000,host3:9000` |
 
 
-Supprted DBMSs
+Supported DBMSs
 ===============
 - `MYSQL`, `TiDB`, `MariaDB`, `Percona` and any MYSQL compatible server uses `mysql` driver.
 - `PostgreSQL`, `CockroachDB` and any PostgreSQL compatible server uses `postgres` driver.
@@ -174,7 +174,7 @@ databases_tables {
 
 REST vs RESP
 =============
-> RESTful server could be used to interact directly with i.e `mobile, browser, ... etc`, in this mode `SQLer` is protected by `authorizers`, which gives you the abbility to check authorization against another 3rd-party api.  
+> RESTful server could be used to interact directly with i.e `mobile, browser, ... etc`, in this mode `SQLer` is protected by `authorizers`, which gives you the ability to check authorization against another 3rd-party api.  
 > Each macro you add to the configuration file(s) you can access to it by issuing a http request to `/<macro-name>`, every query param and json body will be passed to the macro `.Input`.
 
 > RESP server is just a basic `REDIS` compatible server, you connect to it using any `REDIS` client out there, even `redis-cli`, just open `redis-cli -p 3678 list` to list all available macros (`commands`), you can execute any macro as a redis command and pass the arguments as a json encoded data, i.e `redis-cli -p 3678 adduser "{\"user_name\": \"u6\", \"user_email\": \"email@tld.com\", \"user_password\":\"pass@123\"}"`.
