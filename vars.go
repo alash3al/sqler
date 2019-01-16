@@ -37,7 +37,7 @@ var (
 )
 
 const (
-	sqlerVersion = "v1.0"
+	sqlerVersion = "v2.1"
 	sqlerBrand   = `
 	
 			 ____   ___  _              

@@ -59,12 +59,35 @@ adduser {
 
 // list all databases, and run a transformer function
 databases {
+    include = ["_boot"]
     exec = "SHOW DATABASES"
+    transformer = <<JS
+        (function(){
+            // $result
+            $new = [];
+            for ( i in $result ) {
+                $new.push($result[i].Database)
+            }
+            return $new
+        })()
+    JS
 }
 
 // list all tables from all databases
 tables {
-    exec = "SELECT `table_schema` as `database`, `table_name` as `table` FROM INFORMATION_SCHEMA.tables"
+    exec = "SELECT `table_name` as `table`, `table_schema` as `database` FROM INFORMATION_SCHEMA.tables"
+    transformer = <<SQL
+        (function(){
+            $ret = []
+            for ( i in $result ){
+                $ret.push({
+                    table: $result[i].table,
+                    database: $result[i].database,
+                })
+            }
+            return $ret
+        })()
+    SQL
 }
 
 // a macro that aggregates `databases` macro and `tables` macro into one macro
