@@ -13,7 +13,7 @@ import (
 func routeIndex(c echo.Context) error {
 	return c.JSON(200, map[string]interface{}{
 		"success": true,
-		"message": "Weclome!",
+		"message": "Welcome!",
 	})
 }
 
