@@ -8,7 +8,8 @@ Table Of Contents
 - [Table Of Contents](#table-of-contents)
 - [Features](#features)
 - [Quick Tour](#quick-tour)
-- [Supprted DBMSs](#supprted-dbmss)
+- [Supported DBMSs](#supported-dbmss)
+- [Docker](#docker)
 - [Configuration Overview](#configuration-overview)
 - [REST vs RESP](#rest-vs-resp)
 - [Sanitization](#sanitization)
@@ -83,7 +84,6 @@ Quick Tour
 | `hdb` (SAP HANA) |   `hdb://user:password@host:port` |
 | `clickhouse` (Yandex ClickHouse) |   `tcp://host1:9000?username=user&password=qwerty&database=clicks&read_timeout=10&write_timeout=20&alt_hosts=host2:9000,host3:9000` |
 
-
 Supported DBMSs
 ===============
 - `MYSQL`, `TiDB`, `MariaDB`, `Percona` and any MYSQL compatible server uses `mysql` driver.
@@ -92,6 +92,23 @@ Supported DBMSs
 - `SQLITE`, uses `sqlite3` driver.
 - `HANA` (SAP), uses `hdb` driver.
 - `Clickhouse`, uses `clickhouse` driver.
+
+Docker
+======
+> SQLer has a docker image called `alash3al/sqler` it is an automated build, you can use it like the following:
+
+```bash
+
+# run the help message
+docker run --rm alash3al/sqler --help
+
+# connect to a local mysql
+docker run --network=host alash3al/sqler -driver=mysql -dsn=usr:pass@tcp(127.0.0.1:3306)/dbname
+
+# connect to another mysql container
+docker run -link mysql alash3al/sqler -driver=mysql -dsn=usr:pass@tcp(mysql:3306)/dbname
+
+```
 
 Configuration Overview
 ======================
