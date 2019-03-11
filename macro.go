@@ -53,7 +53,7 @@ func (m *Macro) Call(input map[string]interface{}) (interface{}, error) {
 			return err.Error(), err
 		}
 	} else {
-		out, err = m.execSQLQuery(strings.Split(strings.TrimSpace(m.Exec), ";"), input)
+		out, err = m.execSQLQuery(strings.Split(strings.TrimSpace(m.Exec), *flagSQLSeparator), input)
 		if err != nil {
 			return err.Error(), err
 		}

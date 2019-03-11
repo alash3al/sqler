@@ -16,6 +16,7 @@ var (
 	flagRESTListenAddr = flag.String("rest", ":8025", "the http restful api listen address")
 	flagRESPListenAddr = flag.String("resp", ":3678", "the resp (redis protocol) server listen address")
 	flagWorkers        = flag.Int("workers", runtime.NumCPU(), "the maximum workers count")
+	flagSQLSeparator   = flag.String("sep", `---\\--`, "multi sql query separator")
 )
 
 var (
