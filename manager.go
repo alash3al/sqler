@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"strings"
+	"sync"
 	"text/template"
 
 	"github.com/hashicorp/hcl"
@@ -17,6 +18,7 @@ import (
 type Manager struct {
 	macros   map[string]*Macro
 	compiled *template.Template
+	sync.RWMutex
 }
 
 // NewManager - initialize a new manager
@@ -60,6 +62,9 @@ func NewManager(configpath string) (*Manager, error) {
 
 // Get - fetches the required macro
 func (m *Manager) Get(macro string) *Macro {
+	m.RLock()
+	defer m.RUnlock()
+
 	return m.macros[macro]
 }
 
