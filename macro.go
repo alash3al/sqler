@@ -1,12 +1,9 @@
 package main
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"strings"
-
-	"github.com/vmihailenco/msgpack"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -28,7 +25,7 @@ type Macro struct {
 
 // Call - executes the macro
 func (m *Macro) Call(input map[string]interface{}) (interface{}, error) {
-	ok, err := m.execAuthorizer(input)
+	ok, err := m.authorize(input)
 	if err != nil {
 		return err.Error(), err
 	}
@@ -62,7 +59,7 @@ func (m *Macro) Call(input map[string]interface{}) (interface{}, error) {
 		}
 	}
 
-	out, err = m.execTransformer(out)
+	out, err = m.transform(out)
 	if err != nil {
 		return err.Error(), err
 	}
@@ -148,8 +145,8 @@ func (m *Macro) scanSQLRow(rows *sqlx.Rows) (map[string]interface{}, error) {
 	return row, nil
 }
 
-// execTransformer - run the transformer function
-func (m *Macro) execTransformer(data interface{}) (interface{}, error) {
+// transform - run the transformer function
+func (m *Macro) transform(data interface{}) (interface{}, error) {
 	transformer := strings.TrimSpace(m.Transformer)
 	if transformer == "" {
 		return data, nil
@@ -165,8 +162,8 @@ func (m *Macro) execTransformer(data interface{}) (interface{}, error) {
 	return v.Export(), nil
 }
 
-// execAuthorizer - run the authorizer function
-func (m *Macro) execAuthorizer(input map[string]interface{}) (bool, error) {
+// authorize - run the authorizer function
+func (m *Macro) authorize(input map[string]interface{}) (bool, error) {
 	authorizer := strings.TrimSpace(m.Authorizer)
 	if authorizer == "" {
 		return true, nil
@@ -206,14 +203,12 @@ func (m *Macro) aggregate(input map[string]interface{}) (map[string]interface{},
 	return ret, nil
 }
 
-// encodeInput - encode the input as a string
-func (m *Macro) encodeInput(in map[string]interface{}) string {
-	k, _ := msgpack.Marshal(in)
-	return hex.EncodeToString(k)
-}
-
 // validate - validate the input aginst the rules
 func (m *Macro) validate(input map[string]interface{}) (ret []string, err error) {
+	if len(m.Validators) < 1 {
+		return nil, nil
+	}
+
 	vm := initJSVM(map[string]interface{}{"$input": input})
 
 	for k, src := range m.Validators {
@@ -232,6 +227,10 @@ func (m *Macro) validate(input map[string]interface{}) (ret []string, err error)
 
 // buildBind - build the bind vars
 func (m *Macro) buildBind(input map[string]interface{}) (map[string]interface{}, error) {
+	if len(m.Bind) < 1 {
+		return nil, nil
+	}
+
 	vm := initJSVM(map[string]interface{}{"$input": input})
 	ret := map[string]interface{}{}
 
