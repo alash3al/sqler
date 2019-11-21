@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/alash3al/go-color"
+
+	"github.com/go-resty/resty/v2"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -18,6 +21,13 @@ type Macro struct {
 	Exec        string
 	Aggregate   []string
 	Transformer string
+
+	Trigger struct {
+		Webhook string
+		Macro   string
+	}
+
+	Cron string
 
 	name    string
 	manager *Manager
@@ -63,6 +73,28 @@ func (m *Macro) Call(input map[string]interface{}) (interface{}, error) {
 	if err != nil {
 		return err.Error(), err
 	}
+
+	go (func() {
+		if m.Trigger.Webhook != "" {
+			_, err := resty.New().R().SetDoNotParseResponse(true).SetHeader("Content-Type", "application/json").SetBody(map[string]interface{}{
+				"payload": out,
+			}).Post(m.Trigger.Webhook)
+
+			if err != nil {
+				color.Red("[X]- " + err.Error())
+			}
+		}
+
+		if subm := m.manager.Get(m.Trigger.Macro); subm != nil {
+			_, err := subm.Call(map[string]interface{}{
+				"payload": out,
+			})
+
+			if err != nil {
+				color.Red("[X]- " + err.Error())
+			}
+		}
+	})()
 
 	return out, nil
 }

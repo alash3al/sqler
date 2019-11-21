@@ -5,42 +5,20 @@ _boot {
     // the query we want to execute
     exec = <<SQL
         CREATE TABLE IF NOT EXISTS datax (
-            ID SERIAL PRIMARY KEY,
-            data JSONB DEFAULT NULL
+            ID INT PRIMARY KEY,
+            data TEXT DEFAULT NULL
         );
-
-        CREATE INDEX IF NOT EXISTS datax_gin_index ON datax USING GIN(data);
     SQL
-
-    extend {
-        data {}
-        call {}
-    }
-
-    trigger {
-        mail {
-
-        }
-
-        http {
-
-        }
-
-        call {
-            macro = ""
-            input = ""
-        }
-    }
 }
 
 addpost {
     include = ["_boot"]
     methods = ["POST"]
 
-    validators {
-        title_is_empty = "$input.title && $input.title.trim().length > 0"
-        content_is_empty = "$input.content"
-    }
+    // validators {
+    //     title_is_empty = "$input.title && $input.title.trim().length > 0"
+    //     content_is_empty = "$input.content"
+    // }
 
     bind {
         data = <<JS
@@ -146,6 +124,21 @@ databases_tables {
     aggregate = ["databases", "tables"]
 }
 
-vars {
-    exec = "show variables"
+_sqlite_tables {
+    exec = <<SQL
+    SELECT 
+        name
+    FROM 
+        sqlite_master 
+    WHERE 
+        type ='table' AND 
+        name NOT LIKE 'sqlite_%';
+    SQL
+
+
+    cron = "* * * * *"
+
+    trigger {
+        webhook = "https://en09y7gttbxyos.x.pipedream.net"
+    }
 }

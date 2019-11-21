@@ -36,6 +36,8 @@ Features
 - Uses `Javascript` custom expressions.
 - Each macro has its own `Context` (`query params` + `body params`) as `.Input` which is `map[string]interface{}`, and `.Utils` which is a list of helper functions, currently it contains only `SQLEscape`.
 - You can define `authorizers`, an `authorizer` is just a simple webhook that enables `sqler` to verify whether the request should be done or not.
+- Trigger a `webhook` or another `macro` when a specific `macro` get executed.
+- Schedule specific macros to run at specific time using simple `cron` syntax.
 
 Quick Tour
 ==========
@@ -175,6 +177,10 @@ adduser {
 // list all databases, and run a transformer function
 databases {
     exec = "SHOW DATABASES"
+    cron = "* * * * *"
+    trigger {
+        webhook = "http://some.url/hook"
+    }
 }
 
 // list all tables from all databases

@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/dop251/goja"
-	"gopkg.in/resty.v1"
+	"github.com/go-resty/resty/v2"
 )
 
 // initJSVM - creates a new javascript virtual machine
@@ -45,8 +45,8 @@ func jsFetchfunc(url string, options ...map[string]interface{}) (map[string]inte
 	if nil != option["body"] {
 		body, _ = option["body"]
 	}
-
-	resp, err := resty.R().SetHeaders(headers).SetBody(body).Execute(method, url)
+	client := resty.New()
+	resp, err := client.R().SetHeaders(headers).SetBody(body).Execute(method, url)
 	if err != nil {
 		return nil, err
 	}

@@ -6,18 +6,22 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 	"text/template"
 
+	"github.com/alash3al/go-color"
 	"github.com/hashicorp/hcl"
+	"github.com/robfig/cron/v3"
 )
 
 // Manager - a macros manager
 type Manager struct {
 	macros   map[string]*Macro
 	compiled *template.Template
+	cron     *cron.Cron
 	sync.RWMutex
 }
 
@@ -26,6 +30,7 @@ func NewManager(configpath string) (*Manager, error) {
 	manager := new(Manager)
 	manager.macros = make(map[string]*Macro)
 	manager.compiled = template.New("main")
+	manager.cron = cron.New()
 
 	for _, p := range strings.Split(configpath, ",") {
 		files, _ := filepath.Glob(p)
@@ -53,9 +58,31 @@ func NewManager(configpath string) (*Manager, error) {
 				}
 				v.manager = manager
 				v.name = k
+				v.Trigger.Webhook = strings.TrimSpace(v.Trigger.Webhook)
+				v.Trigger.Macro = strings.TrimSpace(v.Trigger.Macro)
+
+				if strings.TrimSpace(v.Cron) != "" {
+					(func(v *Macro) {
+						_, err := manager.cron.AddFunc(v.Cron, func() {
+							fmt.Println(color.YellowString("=> Executing cron " + v.name))
+							if _, err := v.Call(map[string]interface{}{}); err != nil {
+								fmt.Println(color.RedString("=> Faild executing cron " + v.name + " due to an error: " + err.Error()))
+							} else {
+								fmt.Println(color.GreenString("=> Executing cron " + v.name + " succeeded!"))
+							}
+						})
+
+						if err != nil {
+							fmt.Println(color.RedString(err.Error()))
+							os.Exit(1)
+						}
+					})(v)
+				}
 			}
 		}
 	}
+
+	manager.cron.Start()
 
 	return manager, nil
 }

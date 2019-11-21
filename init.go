@@ -9,10 +9,10 @@ import (
 	"os"
 	"runtime"
 
+	_ "github.com/ClickHouse/clickhouse-go"
 	_ "github.com/SAP/go-hdb/driver"
 	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/kshvakov/clickhouse"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 
