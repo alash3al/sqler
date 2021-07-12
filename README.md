@@ -204,7 +204,7 @@ REST vs RESP
 
 Sanitization
 =============
-> `SQLer` uses prepared statements, you can bind use inputs like the following:
+> `SQLer` uses prepared statements, you can bind inputs like the following:
 
 
 ```hcl
