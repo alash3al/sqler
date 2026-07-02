@@ -66,7 +66,7 @@ func NewManager(configpath string) (*Manager, error) {
 						_, err := manager.cron.AddFunc(v.Cron, func() {
 							fmt.Println(color.YellowString("=> Executing cron " + v.name))
 							if _, err := v.Call(map[string]interface{}{}); err != nil {
-								fmt.Println(color.RedString("=> Faild executing cron " + v.name + " due to an error: " + err.Error()))
+								fmt.Println(color.RedString("=> Failed executing cron " + v.name + " due to an error: " + err.Error()))
 							} else {
 								fmt.Println(color.GreenString("=> Executing cron " + v.name + " succeeded!"))
 							}
